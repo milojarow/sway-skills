@@ -1,0 +1,33 @@
+{
+  "name": "sway-skills",
+  "description": "Expert skills for sway window manager",
+  "owner": {
+    "name": "milojarow",
+    "url": "https://github.com/milojarow"
+  },
+  "plugins": [
+    {
+      "name": "sway-skills",
+      "source": "./",
+      "description": "11 expert skills for sway WM — config syntax, keybindings, IPC, outputs, inputs, bar, swaylock, swayidle, swayr, swaybg, and swayimg.",
+      "version": "1.0.0",
+      "author": {
+        "name": "milojarow",
+        "url": "https://github.com/milojarow"
+      },
+      "category": "desktop",
+      "keywords": [
+        "sway",
+        "wayland",
+        "wm",
+        "tiling",
+        "swaylock",
+        "swayidle",
+        "i3"
+      ],
+      "homepage": "https://github.com/milojarow/sway-skills",
+      "repository": "https://github.com/milojarow/sway-skills",
+      "license": "MIT"
+    }
+  ]
+}
