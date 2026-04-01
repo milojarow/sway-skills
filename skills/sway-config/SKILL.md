@@ -1,6 +1,10 @@
 ---
 name: sway-config
 description: Core sway configuration syntax, file structure, variable system, and include directives. Use when writing or editing sway config, understanding config file structure, using the set command for variables, organizing config with include, understanding command conventions, working with exec/exec_always, or troubleshooting config reload issues.
+metadata:
+  priority: 8
+  pathPatterns: ["**/sway/config", "**/sway/config.d/**"]
+  bashPatterns: ["swaymsg\\s+reload"]
 ---
 # Sway Configuration
 

@@ -1,6 +1,10 @@
 ---
 name: sway-keybindings
 description: "Keybinding syntax, binding modes, window criteria, layout management, and workspace control for sway WM. Use when defining keyboard shortcuts with bindsym or bindcode, creating or switching binding modes, moving or resizing tiled and floating windows, managing window layout (tiling/floating/tabbed/stacking), working with window criteria for targeting specific windows, switching workspaces or moving containers between workspaces, or assigning windows to outputs and workspaces automatically."
+metadata:
+  priority: 7
+  pathPatterns: ["**/sway/config", "**/sway/config.d/**"]
+  bashPatterns: ["swaymsg\\s+(bindsym|bindcode|mode)"]
 ---
 # Sway Keybindings, Modes, and Window Management
 

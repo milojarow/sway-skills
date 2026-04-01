@@ -1,6 +1,10 @@
 ---
 name: swayidle
 description: Idle management daemon for sway and Wayland compositors. Use when configuring screen locking after inactivity, turning off displays when idle, running commands before system sleep, setting up resume actions, configuring swayidle via config file, or troubleshooting idle behavior with the -d flag.
+metadata:
+  priority: 5
+  pathPatterns: ["**/swayidle/config", "**/swayidle/**"]
+  bashPatterns: ["swayidle"]
 ---
 # swayidle
 

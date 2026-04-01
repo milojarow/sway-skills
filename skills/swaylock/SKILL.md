@@ -1,6 +1,10 @@
 ---
 name: swaylock
 description: "Screen locking utility for Wayland compositors that implements the ext-session-lock-v1 protocol. Use when locking the screen, customizing the lock screen appearance (colors, indicator, images), configuring per-output backgrounds, setting up swaylock with swayidle, using the config file for persistent settings, or scripting lock behavior with signals."
+metadata:
+  priority: 5
+  pathPatterns: ["**/swaylock/config", "**/swaylock/**"]
+  bashPatterns: ["swaylock"]
 ---
 # swaylock
 

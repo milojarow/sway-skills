@@ -1,6 +1,10 @@
 ---
 name: swaybg
 description: Wallpaper and background color utility for Wayland compositors implementing the wlr-layer-shell protocol. Use when setting a desktop background image, applying a solid color background, configuring per-monitor wallpapers, choosing image scaling mode, using swaybg from the command line, or customizing the swaybg_command in sway config.
+metadata:
+  priority: 5
+  pathPatterns: []
+  bashPatterns: ["swaybg"]
 ---
 # swaybg
 

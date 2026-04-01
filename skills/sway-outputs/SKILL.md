@@ -1,6 +1,10 @@
 ---
 name: sway-outputs
 description: "Display and monitor configuration for sway including resolution, scaling, positioning, wallpaper, and power management. Use when configuring monitors, setting resolution or refresh rate, arranging a multi-display setup, enabling fractional scaling, setting a desktop background, controlling display power (DPMS), or configuring advanced rendering options like adaptive sync or HDR."
+metadata:
+  priority: 6
+  pathPatterns: ["**/sway/config", "**/sway/config.d/**"]
+  bashPatterns: ["swaymsg\\s+(output|-t\\s+get_outputs)"]
 ---
 # Sway Output Configuration
 

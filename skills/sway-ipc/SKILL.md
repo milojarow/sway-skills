@@ -1,6 +1,10 @@
 ---
 name: sway-ipc
 description: "Runtime control, state querying, and event subscription via swaymsg and the IPC socket protocol. Use when running swaymsg commands, querying the current workspace or active window, writing scripts that control sway, sending commands programmatically, subscribing to window/workspace events, parsing get_tree output, or troubleshooting sway state."
+metadata:
+  priority: 7
+  pathPatterns: []
+  bashPatterns: ["swaymsg"]
 ---
 # Sway IPC — Runtime Control and State Querying
 

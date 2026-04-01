@@ -1,6 +1,10 @@
 ---
 name: swayimg
 description: "Image viewer for Wayland with viewer and gallery modes. Use when viewing images from the terminal, browsing a directory of images in gallery mode, configuring swayimg appearance or keybindings, using the sway/Hyprland overlay integration mode, viewing animated GIFs or slideshows, or loading images from pipes."
+metadata:
+  priority: 5
+  pathPatterns: ["**/swayimg/config"]
+  bashPatterns: ["swayimg"]
 ---
 # swayimg
 

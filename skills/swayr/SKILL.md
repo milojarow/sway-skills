@@ -1,6 +1,10 @@
 ---
 name: swayr
 description: "Window switcher and MRU (most-recently-used) manager for sway. Use when switching between windows in MRU order, switching to urgent windows first, switching workspaces, moving windows or workspaces, running fuzzy-search window switchers, setting up swayrd daemon, or binding swayr commands to sway keybindings."
+metadata:
+  priority: 5
+  pathPatterns: ["**/swayr/config.toml"]
+  bashPatterns: ["swayr"]
 ---
 # swayr
 

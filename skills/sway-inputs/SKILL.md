@@ -1,6 +1,10 @@
 ---
 name: sway-inputs
 description: "Keyboard layout (XKB), pointer and touchpad configuration via libinput, tablet devices, and multiseat setup in sway. Use when configuring keyboard layout or language switching, adjusting touchpad tap/scroll behavior, setting mouse acceleration, mapping a drawing tablet to an output, configuring cursor themes, disabling a touchpad while typing, or setting up shortcut inhibition."
+metadata:
+  priority: 6
+  pathPatterns: ["**/sway/config", "**/sway/config.d/**"]
+  bashPatterns: ["swaymsg\\s+input"]
 ---
 # Sway Input Configuration
 

@@ -1,6 +1,10 @@
 ---
 name: sway-bar
 description: "Status bar configuration (swaybar) and the JSON protocol for writing custom status generators. Use when configuring the swaybar appearance, choosing between dock/hide/invisible bar modes, setting bar colors or fonts, configuring the system tray icon size or gap, implementing a custom status_command script, handling click events in status blocks, or using pango markup in status output."
+metadata:
+  priority: 6
+  pathPatterns: ["**/sway/config", "**/sway/config.d/**"]
+  bashPatterns: ["swaymsg\\s+bar"]
 ---
 # Swaybar Configuration and JSON Status Protocol
 
