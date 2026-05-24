@@ -34,7 +34,7 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 | Lock & idle — swaylock (appearance), swayidle | [reference/lock-and-idle.md](reference/lock-and-idle.md) |
 | Image viewer — swayimg (viewer + gallery) | [reference/images.md](reference/images.md) |
 | Window switcher — swayr (MRU) | [reference/swayr.md](reference/swayr.md) |
-| **Live theming** — the palette system ($mod+t), 12 themes, foot/waybar/rofi/wofi/eww recolor | [reference/theming.md](reference/theming.md) |
+| **Live theming** — the palette system ($mod+t), foot/waybar/rofi/wofi/eww recolor | [reference/theming.md](reference/theming.md) |
 | **This machine's custom functionalities** — resize/swap/scratchpad, screenshots, recording, power menu, clipboard, gamma, emoji, etc. | [reference/this-system.md](reference/this-system.md) |
 
 ## Quick orientation

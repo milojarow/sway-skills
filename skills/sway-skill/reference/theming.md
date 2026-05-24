@@ -6,8 +6,8 @@ This machine has a **bespoke live color-palette theming system** (documented in 
 - **`$mod+t`** → wofi theme picker listing `~/.config/sway/themes/`; calls `theme-selector.sh menu`.
 - **waybar `custom/theme` module** — left-click toggles light↔dark (`theme-toggle.sh toggle`); right-click enables/disables automatic solar switching (`theme-toggle.sh auto-toggle`, sunrise/sunset via `geoip.sh`).
 
-## The 12 themes
-`catppuccin-{frappe,latte,macchiato,mocha}`, `dracula`, `gruvbox-dark`, `matcha-{blue,green,leaf,red}`, `nordic-bluish-accent`, `tokyo-night`. (`catppuccin-latte` is the only light theme.)
+## The theme set
+The installed themes are exactly the subdirectories of `~/.config/sway/themes/` — discover the current set with `ls ~/.config/sway/themes/` or the `$mod+t` picker. **Don't assume a fixed roster; it grows as themes are added.** Light vs dark is per-theme (not a hardcoded list): read each theme's `theme.conf` `color-scheme` (`prefer-light` / `prefer-dark`) or its `$gtk-theme`.
 
 ## What a switch does (`theme-selector.sh` → `apply_theme`)
 1. Symlinks the theme's `theme.conf` → `~/.config/sway/definitions.d/theme.conf` (sway color vars + `client.*` decoration rules).
