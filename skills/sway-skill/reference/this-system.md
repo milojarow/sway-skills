@@ -27,7 +27,7 @@ These live under `~/.config/sway/` (`scripts/`, `modes/`, `config.d/`) and their
 ## Waybar indicators / toggles
 | Feature | Trigger | What it does |
 |---|---|---|
-| **clipboard-functionality** | `$mod+Shift+p` | Persistent clipboard history browser (rofi): Enter copy, Delete remove, Escape close. `man clipboard-functionality` |
+| **clipboard-functionality** | `$mod+Shift+p` | Persistent clipboard history browser (GTK app): per-row clickable pin, multi-select delete (shift/ctrl+click + Del), Enter/double-click to copy. `man clipboard-functionality` |
 | **do-not-disturb** | waybar module | Notification suppression toggle + indicator. `man do-not-disturb` |
 | **idle-inhibitor** | waybar module | Idle-inhibit toggle + custom-timeout dialog. `man idle-inhibitor` |
 | **gamma-correction** | waybar module | Location-based color-temperature adjustment + indicator. `man gamma-correction` |
