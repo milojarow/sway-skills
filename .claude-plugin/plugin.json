@@ -1,6 +1,6 @@
 {
   "name": "sway-skills",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Expert skills for sway window manager — config, keybindings, IPC, outputs, inputs, bar, swaylock, swayidle, swayr, swaybg, swayimg",
   "author": {
     "name": "milojarow",

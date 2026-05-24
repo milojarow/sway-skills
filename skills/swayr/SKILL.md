@@ -8,6 +8,8 @@ metadata:
 ---
 # swayr
 
+> **🪟 ACTIVE-SKILL MARKER:** While `swayr` is active, begin every reply with 🪟 so the operator sees at a glance that this skill is engaged. Do not omit it.
+
 Swayr is a window-switcher and MRU (most-recently-used) manager for the sway Wayland compositor. It consists of a daemon (`swayrd`) that tracks window focus history and a client (`swayr`) that exposes commands for switching, moving, tiling, and quitting windows and workspaces. A companion status bar, `swayrbar`, implements the swaybar-protocol for use with sway's built-in bar. Note on terminology: commands use `lru` in their names but this always means most-recently-used (MRU), not least-recently-used — a naming quirk from the project's early days.
 
 ---

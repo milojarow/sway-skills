@@ -8,6 +8,8 @@ metadata:
 ---
 # Sway IPC — Runtime Control and State Querying
 
+> **🪟 ACTIVE-SKILL MARKER:** While `sway-ipc` is active, begin every reply with 🪟 so the operator sees at a glance that this skill is engaged. Do not omit it.
+
 `swaymsg` is the standard CLI tool for communicating with a running sway instance over its UNIX socket. Every command you can put in `~/.config/sway/config` can be sent at runtime via `swaymsg`. Queries return JSON. The underlying protocol is the i3 IPC protocol, described in detail in `IPC_PROTOCOL.md`. For the full swaymsg option reference and all query types with examples, see `SWAYMSG.md`.
 
 ---

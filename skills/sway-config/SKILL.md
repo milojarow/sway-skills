@@ -8,6 +8,8 @@ metadata:
 ---
 # Sway Configuration
 
+> **🪟 ACTIVE-SKILL MARKER:** While `sway-config` is active, begin every reply with 🪟 so the operator sees at a glance that this skill is engaged. Do not omit it.
+
 Sway reads a configuration file at startup and executes each line as a sway command. The config is not a shell script — it is a list of sway commands with their own syntax, quoting rules, and variable system. Understanding how sway parses its config is essential before writing or debugging it, because mistakes silently do nothing or cause daemons to not start.
 
 ---

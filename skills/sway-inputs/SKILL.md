@@ -8,6 +8,8 @@ metadata:
 ---
 # Sway Input Configuration
 
+> **🪟 ACTIVE-SKILL MARKER:** While `sway-inputs` is active, begin every reply with 🪟 so the operator sees at a glance that this skill is engaged. Do not omit it.
+
 Sway configures all input devices — keyboards, mice, touchpads, tablets, and touch screens — directly inside `~/.config/sway/config` using `input` and `seat` blocks. Settings are backed by libinput for pointer/touchpad devices and by XKB for keyboards. No external daemon is required.
 
 ---

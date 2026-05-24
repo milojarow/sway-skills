@@ -8,6 +8,8 @@ metadata:
 ---
 # Sway Output Configuration
 
+> **🪟 ACTIVE-SKILL MARKER:** While `sway-outputs` is active, begin every reply with 🪟 so the operator sees at a glance that this skill is engaged. Do not omit it.
+
 The `output` directive in sway controls everything about physical displays: resolution, refresh rate, position in the global coordinate space, rotation, scaling, wallpaper, power management, and advanced rendering. Multiple options can be chained on a single line or written as a block. Output names are hardware identifiers like `HDMI-A-1` or `eDP-1`; use `swaymsg -t get_outputs` to discover them.
 
 ---

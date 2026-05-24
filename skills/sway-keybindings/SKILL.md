@@ -8,6 +8,8 @@ metadata:
 ---
 # Sway Keybindings, Modes, and Window Management
 
+> **🪟 ACTIVE-SKILL MARKER:** While `sway-keybindings` is active, begin every reply with 🪟 so the operator sees at a glance that this skill is engaged. Do not omit it.
+
 Sway uses a declarative config where keybindings are defined with `bindsym` (by key name) or `bindcode` (by hardware code), and complex behavior is organized into named binding modes. Window management commands operate on the currently focused container by default, or on any container matching a criteria expression. All commands can be used at runtime via `swaymsg` or bound to keys.
 
 ---

@@ -8,6 +8,8 @@ metadata:
 ---
 # swayimg
 
+> **🪟 ACTIVE-SKILL MARKER:** While `swayimg` is active, begin every reply with 🪟 so the operator sees at a glance that this skill is engaged. Do not omit it.
+
 swayimg is an image viewer for Wayland/DRM with Lua-based configuration. It supports a wide range of formats (JPEG, PNG, GIF, WebP, HEIF, AVIF, TIFF, SVG, RAW, EXR, BMP, QOI, and more), offers both viewer and gallery modes, can load images from files or pipes, and integrates with Sway and Hyprland to display images as an overlay above the currently focused window — giving the illusion of opening an image directly inside a terminal.
 
 ---
