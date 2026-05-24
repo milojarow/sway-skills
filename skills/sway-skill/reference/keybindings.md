@@ -1,14 +1,5 @@
----
-name: sway-keybindings
-description: "Keybinding syntax, binding modes, window criteria, layout management, and workspace control for sway WM. Use when defining keyboard shortcuts with bindsym or bindcode, creating or switching binding modes, moving or resizing tiled and floating windows, managing window layout (tiling/floating/tabbed/stacking), working with window criteria for targeting specific windows, switching workspaces or moving containers between workspaces, or assigning windows to outputs and workspaces automatically."
-metadata:
-  priority: 7
-  pathPatterns: ["**/sway/config", "**/sway/config.d/**"]
-  bashPatterns: ["swaymsg\\s+(bindsym|bindcode|mode)"]
----
 # Sway Keybindings, Modes, and Window Management
 
-> **🪟 ACTIVE-SKILL MARKER:** While `sway-keybindings` is active, begin every reply with 🪟 so the operator sees at a glance that this skill is engaged. Do not omit it.
 
 Sway uses a declarative config where keybindings are defined with `bindsym` (by key name) or `bindcode` (by hardware code), and complex behavior is organized into named binding modes. Window management commands operate on the currently focused container by default, or on any container matching a criteria expression. All commands can be used at runtime via `swaymsg` or bound to keys.
 
@@ -156,7 +147,7 @@ bindsym $mod+Shift+1 move container to workspace number $ws1
 
 ## Binding Modes
 
-Modes allow a second (or Nth) layer of keybindings activated by a trigger. All keys not defined in the active mode are ignored. See **MODES.md** for the full reference.
+Modes allow a second (or Nth) layer of keybindings activated by a trigger. All keys not defined in the active mode are ignored. See **this document** for the full reference.
 
 ```sway
 # Define a resize mode
@@ -179,7 +170,7 @@ bindsym $mod+r mode "resize"
 
 ## Window Criteria
 
-Criteria let you target specific windows rather than just the focused one. Used with commands, `for_window`, and `assign`. See **WINDOWS.md** for the full reference.
+Criteria let you target specific windows rather than just the focused one. Used with commands, `for_window`, and `assign`. See **this document** for the full reference.
 
 ```sway
 # Syntax: [attribute="value" ...] command
@@ -195,9 +186,3 @@ assign [class="Spotify"] workspace 9
 ```
 
 ---
-
-## Reference Files
-
-- **MODES.md** — Defining and switching binding modes, practical patterns (system mode, launcher mode, passthrough mode)
-- **WINDOWS.md** — Full criteria reference, layout commands, focus/move/resize/floating/border commands
-- **WORKSPACES.md** — Workspace switching, naming, output assignment, `workspace_auto_back_and_forth`

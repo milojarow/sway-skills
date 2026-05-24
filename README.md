@@ -1,55 +1,38 @@
 # sway-skills
 
-**Expert Claude Code skills for the [sway](https://swaywm.org/) Wayland compositor**
+**One expert Claude Code skill for this machine's window manager — [SwayFX](https://github.com/WillPower3309/swayfx) 0.5.3 (a fork of [sway](https://swaywm.org/) 1.11).**
 
 ## What is this?
 
-This repository contains **11 Claude Code skills** covering the sway window manager and its companion tools — swaylock, swayidle, swayr, swaybg, and swayimg.
+A single skill, `sway-skill`, that makes Claude a complete expert on this machine's sway: window management, config, keybindings, **SwayFX visual effects** (rounded corners, blur, shadows, dim-inactive, layer effects), swaybar, swaylock/swayidle, inputs, outputs, IPC, swayr — plus this machine's **live palette-theming system** and its **custom functionalities** (resize/swap/scratchpad modes, screenshots, recording, power menu, clipboard, gamma, emoji picker, …).
 
-### Why These Skills Exist
+Talking to the skill = talking to this machine's own sway. It consolidates what used to be 11 separate sub-skills into one (no inter-skill trigger competition) with progressive-disclosure reference files.
 
-Configuring sway and its ecosystem involves:
-- Complex config syntax with variables, includes, and modes
-- IPC protocol for scripting and event-driven automation
-- Multiple companion tools with their own config formats
-- Wayland-specific concepts (layer-shell, output management, XKB)
-
-These skills teach Claude the entire sway ecosystem so it can help effectively with configuration, scripting, and troubleshooting.
-
-## The 11 Skills
-
-| Skill | Description |
-|-------|-------------|
-| **sway-config** | Core config syntax, variables, includes, exec/exec_always |
-| **sway-keybindings** | Bindsym, modes, window criteria, layout, workspaces |
-| **sway-ipc** | swaymsg, event subscription, get_tree, scripting |
-| **sway-inputs** | Keyboard layout (XKB), touchpad, pointer, tablet, cursor |
-| **sway-outputs** | Monitors, resolution, scaling, wallpaper, DPMS |
-| **sway-bar** | swaybar config, JSON status protocol, click events |
-| **swaylock** | Screen locking, indicator, per-output backgrounds |
-| **swayidle** | Idle timeouts, lock-before-sleep, resume actions |
-| **swayr** | Window switching, MRU order, fuzzy search |
-| **swaybg** | Desktop background, scaling modes, per-monitor |
-| **swayimg** | Image viewer, gallery mode, overlay integration |
-
-## Installation
-
-Add this marketplace in Claude Code:
+## Structure
 
 ```
-/plugin → Marketplaces → Add Marketplace → milojarow/sway-skills
+skills/sway-skill/
+  SKILL.md            # router + overview (SwayFX 0.5.3)
+  reference/
+    fundamentals.md   keybindings.md   config.md   swayfx.md
+    ipc.md            inputs.md        outputs.md  bar.md
+    lock-and-idle.md  images.md        swayr.md
+    theming.md        this-system.md
 ```
 
-Then install:
+A PreToolUse hook auto-injects the skill when you edit sway config / scripts / themes or run `swaymsg` / `swaylock` / etc.
+
+## Install
 
 ```
-/plugin → Discover → sway-skills → Install
+/plugin marketplace add milojarow/sway-skills
+/plugin install sway-skills
 ```
 
 ## Requirements
 
-- [sway](https://swaywm.org/) window manager
-- Claude Code
+- [SwayFX](https://github.com/WillPower3309/swayfx) (or vanilla sway — the `swayfx.md` reference simply won't apply). Companion tools: swaylock, swayidle, swaybg, swayimg, swayr.
+- The custom-functionality docs assume this machine's setup (man pages under `~/.local/share/man/man1/`).
 
 ## License
 

@@ -1,59 +1,33 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with this repository.
+Guidance for Claude Code when working with this repository.
 
 ## Project Overview
 
-This is the **sway-skills** repository — a collection of Claude Code skills for the sway Wayland compositor and its companion tools.
+**sway-skills** — a single Claude Code skill, `sway-skill`, that is the complete expert on this machine's window manager: **SwayFX 0.5.3** (fork of sway 1.11) plus this machine's theming system and custom functionalities.
 
 **Repository**: https://github.com/milojarow/sway-skills
 
-**Purpose**: 11 skills covering every aspect of sway — from core config syntax to IPC scripting, keybindings, display configuration, and companion utilities (swaylock, swayidle, swayr, swaybg, swayimg).
+Consolidated 2026-05-24 from 11 separate sub-skills into one — one broad trigger ("anything sway"), all depth in progressive-disclosure reference files, to avoid inter-sub-skill trigger competition.
 
 ## Repository Structure
 
 ```
 sway-skills/
-├── .claude-plugin/        # Claude Code plugin configuration
-├── CLAUDE.md              # This file
-├── README.md              # Project overview
-├── LICENSE                # MIT License
-└── skills/                # Individual skill implementations
-    ├── sway-bar/          # swaybar config and JSON status protocol
-    ├── sway-config/       # Core config syntax, variables, includes
-    ├── sway-inputs/       # Keyboard, touchpad, tablet, cursor config
-    ├── sway-ipc/          # swaymsg, event subscription, get_tree
-    ├── sway-keybindings/  # Bindsym, modes, criteria, layout, workspaces
-    ├── sway-outputs/      # Monitors, scaling, wallpaper, DPMS, HDR
-    ├── swaybg/            # Desktop background utility
-    ├── swayidle/          # Idle management daemon
-    ├── swayimg/           # Image viewer for Wayland
-    ├── swaylock/          # Screen locking utility
-    └── swayr/             # Window switcher and MRU manager
+├── .claude-plugin/       # marketplace.json, plugin.json (v2.0.0)
+├── CLAUDE.md  ·  README.md  ·  LICENSE
+├── hooks/                # pretooluse-inject.py + hooks.json — auto-injects sway-skill on sway files/commands
+└── skills/sway-skill/
+    ├── SKILL.md          # router + overview; frontmatter `metadata` drives the inject hook
+    └── reference/        # fundamentals, keybindings, config, swayfx, ipc, inputs,
+                          # outputs, bar, lock-and-idle, images, swayr, theming, this-system
 ```
 
-## The 11 Skills
+## The skill
 
-### Core sway
-1. **sway-config** — Config syntax, file structure, variables, includes, exec/exec_always
-2. **sway-keybindings** — Bindsym/bindcode, modes, criteria, layout, workspaces
-3. **sway-ipc** — swaymsg commands, event subscription, get_tree parsing
-4. **sway-inputs** — Keyboard layout (XKB), touchpad, pointer, tablet, cursor
-5. **sway-outputs** — Monitor config, resolution, scaling, positioning, DPMS
-6. **sway-bar** — swaybar appearance, JSON protocol, click events, pango markup
+### sway-skill (marker 🔰)
+Window management (tiling/floating/tabbed/stacking, workspaces, focus/move), config syntax/includes/exec, keybindings + binding modes, **SwayFX effects** (corner_radius / blur / shadows / dim_inactive / layer_effects — authoritative in `man 5 sway`), swaybar + status protocol, swaylock + swayidle, inputs (XKB / libinput / seat), outputs (displays / scaling / DPMS / wallpaper), swaymsg / IPC, swayr, the **palette-theming** system ($mod+t), and this machine's **custom functionalities** (each with a `man <name>` page under `~/.local/share/man/man1/`). System base: SwayFX 0.5.3.
 
-### Companion tools
-7. **swaylock** — Screen locking, indicator customization, per-output backgrounds
-8. **swayidle** — Idle timeouts, lock-before-sleep, resume actions
-9. **swayr** — Window switching, MRU order, fuzzy search, workspace management
-10. **swaybg** — Wallpaper, solid colors, scaling modes, per-monitor setup
-11. **swayimg** — Image viewing, gallery mode, overlay integration
+## Updating this skill
 
-## Skill Activation
-
-Skills activate automatically when queries match their description triggers:
-- Editing sway config files → sway-config
-- Defining keybindings → sway-keybindings
-- Running swaymsg commands → sway-ipc
-- Configuring monitors → sway-outputs
-- Setting up swaylock → swaylock
+After any change to this machine's sway setup (new functionality, theme, FX directive). Reference files hold the depth; SKILL.md is the lean router; its frontmatter `metadata` patterns drive the auto-inject hook. The custom functionalities are sourced from the man pages — keep them in sync. **Keep it public-safe**: no secrets, hostnames, or client names (the non-sway tooling like `ssh-tmux` deliberately stays out of this skill). The git log is the diary.
