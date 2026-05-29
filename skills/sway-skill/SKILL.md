@@ -11,7 +11,7 @@ metadata:
 
 The complete expert on **this machine's window manager**. It runs **SwayFX 0.5.3** (a fork of sway 1.11 with visual effects), so everything in vanilla sway applies **plus** the FX layer — and this skill also knows this machine's bespoke theming system and custom functionalities.
 
-> **🔰 ACTIVE-SKILL MARKER:** While `sway-skill` is active, begin every reply with 🔰 so the operator sees at a glance that this skill is engaged. Do not omit it.
+> **🔰 ACTIVE-SKILL MARKER:** Prefija tu reply con 🔰 **solo en turnos donde el trabajo toca el dominio de `sway-skill`** — sway / SwayFX en este sistema — editar `~/.config/sway/`, `swaymsg`, scripts de keybind/modo, SwayFX directives, theming. La **capa/proyecto da igual** (frontend, backend, n8n, script local — todos valen): lo que importa es si *este turno* toca el dominio. En turnos que NO lo tocan (typecheck, build, deploy, git ops, edición o curl de otros dominios), **omite 🔰** aunque la skill se haya cargado antes en la sesión. Si otras skills activas también aplican al mismo turno, **apila sus emojis** en el prefijo.
 
 ## Overview
 
