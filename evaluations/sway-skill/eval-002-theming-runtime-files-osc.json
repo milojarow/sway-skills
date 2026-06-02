@@ -1,0 +1,15 @@
+{
+  "id": "sway-skill-002",
+  "skills": ["sway-skill"],
+  "query": "My foot terminal colors look off after a theme switch. Can I just hand-edit ~/.config/foot/foot-theme.ini to fix it, and why didn't a foot reload pick it up?",
+  "expected_behavior": [
+    "Activates the sway-skill skill",
+    "Routes to reference/theming.md",
+    "Warns that ~/.config/foot/foot-theme.ini is an auto-generated runtime file (copied by theme-selector.sh) — do NOT hand-edit or track it; fix the source theme under ~/.config/sway/themes/<name>/ instead",
+    "Explains foot recolors live via OSC 10/11/4 escape sequences written to /dev/pts/*, because foot has no SIGHUP config reload — so a reload won't repaint a running foot",
+    "Points to man palette-theming for full detail"
+  ],
+  "expected_content": ["OSC", "runtime", "do NOT edit", "themes/", "theming.md"],
+  "priority": "high",
+  "notes": "Two walls: (1) editing auto-generated runtime files is wasted work that gets overwritten on next switch; (2) the misconception that foot reloads config like sway — it doesn't, the live path is OSC sequences to the PTY. A naive answer would tell the user to edit the copy and reload foot."
+}

@@ -1,0 +1,15 @@
+{
+  "id": "sway-skill-001",
+  "skills": ["sway-skill"],
+  "query": "I want rounded corners on my windows in sway plus a bit of blur behind the terminal. Is that even possible and how do I set it up?",
+  "expected_behavior": [
+    "Activates the sway-skill skill",
+    "Routes to reference/swayfx.md",
+    "States this machine runs SwayFX (a fork of sway 1.11), so rounded corners and blur ARE available — does not claim vanilla sway lacks them and stop there",
+    "Names the actual directives: corner_radius <px> set globally, and blur enable (optionally per-window via for_window [app_id=...] blur enable)",
+    "Mentions man 5 sway as the authoritative source for the installed SwayFX directives/defaults"
+  ],
+  "expected_content": ["corner_radius", "blur enable", "SwayFX", "swayfx.md"],
+  "priority": "high",
+  "notes": "Guards against the naive answer that 'sway has no rounded corners / blur, use Hyprland'. This machine is SwayFX 0.5.3, where corner_radius and blur are first-class config directives. A vanilla-sway memory would give wrong (defeatist) guidance."
+}

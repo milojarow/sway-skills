@@ -1,0 +1,15 @@
+{
+  "id": "sway-skill-005",
+  "skills": ["sway-skill"],
+  "query": "After switching themes everything recolored except my open Qt app (it's a Kvantum app). The colors on disk look updated. Did the theme switch fail?",
+  "expected_behavior": [
+    "Activates the sway-skill skill",
+    "Routes to reference/theming.md",
+    "Explains the switch did NOT fail — Qt/Kvantum themes and Qt6 icon themes update on disk (kvantummanager --set / qt6ct.conf) but running Qt processes don't reload them, so a restart of the app is required",
+    "Contrasts with what DOES live-recolor (foot via OSC, sway borders via swaymsg reload, GTK via gsettings, eww via filesystem watch) and notes cursor theme applies to newly launched apps only",
+    "Points to man palette-theming for the full per-feature behavior"
+  ],
+  "expected_content": ["Kvantum", "restart", "running Qt", "theming.md"],
+  "priority": "medium",
+  "notes": "Guards against diagnosing a 'failed' theme switch when the real behavior is documented: Qt/Kvantum can't hot-reload a running process. A naive answer might re-run the theme script or hunt for a bug instead of just restarting the Qt app."
+}

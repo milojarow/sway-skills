@@ -1,0 +1,15 @@
+{
+  "id": "sway-skill-004",
+  "skills": ["sway-skill"],
+  "query": "I pressed $mod+r and now the arrow keys resize my window and +/- do something to the gaps. What is this mode and how do I get out, and what other custom modes does this setup have?",
+  "expected_behavior": [
+    "Activates the sway-skill skill",
+    "Routes to reference/this-system.md (this machine's custom functionalities)",
+    "Identifies $mod+r as this machine's resize binding mode (arrows = fine 10px, Shift+arrow = coarse 50px, +/- adjusts the workspace inner gap) and that Escape/Return returns to default mode",
+    "Mentions the sibling custom modes — swap ($mod+Ctrl+w) and scratchpad ($mod+minus / $mod+Shift+minus) — as machine-specific, not vanilla sway",
+    "Points to man resize (and man <feature>) as the authoritative per-feature doc"
+  ],
+  "expected_content": ["resize", "this-system.md", "man resize", "$mod+r"],
+  "priority": "medium",
+  "notes": "Guards against treating $mod+r as a generic/unknown sway binding. These resize/swap/scratchpad modes are bespoke to this machine and each has its own man page; the skill must route to this-system.md and the man pages rather than guess at vanilla sway resize semantics."
+}

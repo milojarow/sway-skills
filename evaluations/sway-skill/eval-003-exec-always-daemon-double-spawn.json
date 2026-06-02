@@ -1,0 +1,15 @@
+{
+  "id": "sway-skill-003",
+  "skills": ["sway-skill"],
+  "query": "Every time I run swaymsg reload I end up with two (or three) copies of my status daemon running. I start it with exec_always in my config. What's wrong?",
+  "expected_behavior": [
+    "Activates the sway-skill skill",
+    "Routes to reference/config.md",
+    "Explains that exec_always runs again on every reload, so the daemon is re-spawned each time without the old one being killed",
+    "Gives the fix: the launcher must pkill/kill the existing instance before exec'ing a fresh one (pkill -f then exec daemon), not rely on exec_always alone",
+    "Notes that reload does NOT reset running processes / window positions"
+  ],
+  "expected_content": ["exec_always", "pkill", "reload", "config.md"],
+  "priority": "high",
+  "notes": "Classic sway wall: users assume exec_always replaces the previous instance on reload. It doesn't — it just runs the line again, stacking duplicate daemons. The skill documents the kill-then-exec pattern."
+}
