@@ -892,7 +892,7 @@ swaymsg -t get_version
   "major": 1,
   "minor": 9,
   "patch": 0,
-  "loaded_config_file_name": "/home/milo/.config/sway/config"
+  "loaded_config_file_name": "~/.config/sway/config"
 }
 ```
 

@@ -135,7 +135,7 @@ A custom path can be passed with `-C`.
 
 ```ini
 # Background
-image=/home/milo/pictures/wallpaper.jpg
+image=~/pictures/wallpaper.jpg
 scaling=fill
 color=1e1e2e
 
@@ -217,8 +217,8 @@ swaylock -c 000000 -u
 
 # Per-output backgrounds
 swaylock \
-    -i eDP-1:/home/milo/pics/laptop-bg.png \
-    -i DP-1:/home/milo/pics/desk-bg.png \
+    -i eDP-1:$HOME/pics/laptop-bg.png \
+    -i DP-1:$HOME/pics/desk-bg.png \
     -s fill
 
 # Full themed lock from config file

@@ -317,7 +317,7 @@ xkbcomp $DISPLAY keymap.xkb
 **Load a custom keymap file in sway config:**
 ```
 input "1:1:AT_Translated_Set_2_keyboard" {
-    xkb_file /home/milo/.config/sway/my-keymap.xkb
+    xkb_file ~/.config/sway/my-keymap.xkb
 }
 ```
 

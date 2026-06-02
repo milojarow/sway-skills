@@ -76,7 +76,7 @@ Variables must start with `$`. By convention, use lowercase with underscores:
 set $mod Mod4
 set $term foot
 set $browser firefox
-set $scripts_dir '/home/milo/.config/sway/scripts'
+set $scripts_dir '$HOME/.config/sway/scripts'
 ```
 
 ### Variable expansion
@@ -362,7 +362,7 @@ What is unreliable inside `exec_always {}` blocks:
 ```sway
 # Example showing the problem
 set $cliphist_store 'wl-paste --watch cliphist store'
-set $cliphist_watch 'wl-paste --type text --watch /home/milo/.local/bin/waybar-signal clipboard'
+set $cliphist_watch 'wl-paste --type text --watch $HOME/.local/bin/waybar-signal clipboard'
 
 # UNRELIABLE — daemons may silently not start
 exec_always {
@@ -407,7 +407,7 @@ Why `exec` at the end? `exec cmd` replaces the current shell process with `cmd` 
 
 ```sway
 # In 01-definitions.conf or equivalent
-set $my_daemon '/home/milo/.config/sway/scripts/my-daemon.sh'
+set $my_daemon '$HOME/.config/sway/scripts/my-daemon.sh'
 ```
 
 Use single quotes and an absolute path. Do not use `~` (prefer the explicit path or `$HOME` inside the script itself).
@@ -509,7 +509,7 @@ FILTER="$SCRIPT_DIR/clipboard-filter.py"
 # CORRECT — use $HOME-relative or absolute paths
 FILTER="$HOME/.config/sway/scripts/clipboard-filter.py"
 # Or:
-FILTER="/home/milo/.config/sway/scripts/clipboard-filter.py"
+FILTER="$HOME/.config/sway/scripts/clipboard-filter.py"
 ```
 
 **Fix:** Never use `dirname "$0"` in scripts launched by sway. Use `$HOME`-relative paths or hardcoded absolute paths for all file references.
@@ -583,7 +583,7 @@ set $cliphist_watch 'wl-paste --watch waybar-signal clipboard'
 
 ```sway
 # CORRECT — absolute path
-set $cliphist_watch 'wl-paste --watch /home/milo/.local/bin/waybar-signal clipboard'
+set $cliphist_watch 'wl-paste --watch $HOME/.local/bin/waybar-signal clipboard'
 ```
 
 Alternatively, export PATH at the top of the called script:
@@ -751,7 +751,7 @@ exec daemon-binary-name --config "$HOME/.config/daemon/config"
 
 ```sway
 # In definitions file:
-set $daemon_name '/home/milo/.config/sway/scripts/daemon-name.sh'
+set $daemon_name '$HOME/.config/sway/scripts/daemon-name.sh'
 
 # In autostart file — standalone, NOT inside exec_always {} block:
 exec_always $daemon_name
