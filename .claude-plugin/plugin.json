@@ -1,6 +1,6 @@
 {
   "name": "sway-skills",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "One expert skill for this machine's sway / SwayFX 0.5.3 — window management, config, keybindings, SwayFX effects, swaybar, swaylock/swayidle, inputs, outputs, IPC, swayr, swayimg, and the live palette-theming system.",
   "author": {
     "name": "milojarow",
@@ -17,6 +17,7 @@
     "swayr",
     "swaybg",
     "swayimg",
+    "swayfx",
     "i3"
   ],
   "repository": "https://github.com/milojarow/sway-skills",

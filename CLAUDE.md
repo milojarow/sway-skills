@@ -14,7 +14,7 @@ Consolidated 2026-05-24 from 11 separate sub-skills into one — one broad trigg
 
 ```
 sway-skills/
-├── .claude-plugin/       # marketplace.json, plugin.json (v2.0.0)
+├── .claude-plugin/       # marketplace.json, plugin.json
 ├── CLAUDE.md  ·  README.md  ·  LICENSE
 ├── hooks/                # pretooluse-inject.py + hooks.json — auto-injects sway-skill on sway files/commands
 └── skills/sway-skill/

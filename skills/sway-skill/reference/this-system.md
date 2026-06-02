@@ -22,7 +22,7 @@ These live under `~/.config/sway/` (`scripts/`, `modes/`, `config.d/`) and their
 |---|---|---|
 | **shutdown** (power menu) | `$mod+Shift+e` or `XF86PowerOff` | Mode menu: `l` lock, logout, reboot, suspend, shutdown. `man shutdown` |
 | **lock-screen** | `$mod+x` (immediate) · shutdown menu `l` / `u` (`u` = secure-suspend) | Screenshot + blur background, swaylock, idle/suspend coordination. `man lock-screen` |
-| **lid-handling** | (event-driven) | Lid open/close handling for sway on this Dell laptop. `man lid-handling` |
+| **lid-handling** | (event-driven) | Lid open/close handling for sway on this machine's laptop. `man lid-handling` |
 
 ## Waybar indicators / toggles
 | Feature | Trigger | What it does |
