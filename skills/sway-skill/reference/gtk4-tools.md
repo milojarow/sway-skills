@@ -176,6 +176,65 @@ after:   rows 22..35   (22 px above, 20 px below)  <- height from .bar padding, 
 
 Fix: let the height come from padding and pin only the width — `col.set_size_request(W, -1)` and `win.set_default_size(W, -1)`. The row is then centred by construction instead of by arithmetic.
 
+## Text renders soft by default (`gtk-font-rendering: AUTOMATIC`, GTK ≥ 4.16)
+
+Glyph stems land between pixel columns at half intensity and the flat cap-height top of every digit rounds away. Tall thin letters look faded next to short ones; digits look chopped. **Nothing is clipped** — the glyphs are rasterised that way. The report will be about geometry ("the border is eating the top of the text", "the top looks chopped"), which sends you hunting for a clipping bug that does not exist.
+
+```
+$ python3 -c 'import gi; gi.require_version("Gtk","4.0"); from gi.repository import Gtk
+Gtk.init(); s=Gtk.Settings.get_default()
+print(s.get_property("gtk-font-rendering"), s.get_property("gtk-xft-hintstyle"))'
+<FontRendering.AUTOMATIC: 0> hintslight
+```
+
+`AUTOMATIC` means GTK decides for itself and **ignores the system hint settings** — `gsettings get org.gnome.desktop.interface font-hinting` can say `slight` while GTK renders as if unhinted. `gtk-hint-font-metrics` is a different knob and makes no difference here.
+
+**Fix — per process, nothing else on the machine changes.** Call right after `Gtk.init()`, before building any widget:
+
+```python
+def force_crisp_text() -> None:
+    try:
+        settings = Gtk.Settings.get_default()
+        if settings is None:
+            return
+        settings.set_property("gtk-font-rendering", Gtk.FontRendering.MANUAL)
+        settings.set_property("gtk-xft-hinting", 1)
+        settings.set_property("gtk-xft-hintstyle", "hintfull")
+    except Exception:
+        pass   # GTK < 4.16 has no gtk-font-rendering
+```
+
+Measured against a PangoCairo render of the same string, `MANUAL` + `hintfull` reproduces it exactly. `hintslight` is better than `AUTOMATIC` but still soft; `hintnone` is worse. Side effect: full hinting makes text ~1 px taller, so a container sized around the old metrics grows by a pixel.
+
+### Ground truth — what the glyphs *should* look like
+
+Draw the same string straight through PangoCairo, with no widget in the path, then compare pixel row by pixel row:
+
+```python
+import gi
+gi.require_version("Pango","1.0"); gi.require_version("PangoCairo","1.0")
+from gi.repository import Pango, PangoCairo
+import cairo
+surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, 260, 40); ctx = cairo.Context(surf)
+ctx.set_source_rgb(0.04, 0.02, 0.07); ctx.paint()
+lay = PangoCairo.create_layout(ctx)
+fd = Pango.FontDescription("JetBrainsMono Nerd Font")
+fd.set_absolute_size(15 * Pango.SCALE)      # 15 device px == CSS font-size:15px
+lay.set_font_description(fd); lay.set_text("11223344556677889900", -1)
+ctx.move_to(2, 10); ctx.set_source_rgb(0.85, 0.83, 0.94)
+PangoCairo.show_layout(ctx, lay); surf.write_to_png("ref.png")
+```
+
+**Never compare one GTK screenshot against another GTK screenshot** — both go through the same rasteriser, they will match perfectly, and that match proves nothing.
+
+### Test with repeated digits, not with words
+
+`11112222233333344444`. Round and irregular letters hide a flattened top; digits share one flat cap height, so the defect reads as a straight chop across the whole line.
+
+### Before blaming a container for clipping, build the control where clipping is impossible
+
+A `Gtk.Label` has no height constraint of any kind. Put a label, a plain entry, an entry with `min-height`, an entry with `padding-top`, and a bare `Gtk.Text` in one window with the same CSS and screenshot them together. If all five render byte-identically, nothing is clipping and the container theory is dead.
+
 ---
 
 ## Walls
@@ -190,3 +249,6 @@ Fix: let the height come from padding and pin only the width — `col.set_size_r
 - **`WidgetPaintable.snapshot()` on an unmapped window renders nothing** — geometry checks need a real (nested/headless) compositor.
 - **`padding` / `min-height` / `color` on an `entry` node do nothing** — text properties go to `.cls text`, vertical rhythm goes to the containing `Gtk.Box`.
 - **A vertical `Gtk.Box` packs children at the top** — pinning window height with `set_size_request` leaves the content glued to the top border; pin width only and let padding set the height.
+- **`gtk-font-rendering: AUTOMATIC` (GTK ≥ 4.16) overrides the system hint settings** — set `MANUAL` + `hintfull` per process; "chopped glyph tops" is soft rasterisation, not clipping.
+- **A GTK-vs-GTK screenshot comparison proves nothing** — the ground truth is a PangoCairo render with no widget in the path.
+- **Reported geometry bugs are often rendering bugs** — build the no-constraint control (`Gtk.Label`) first; if everything renders identically, nothing is clipping.
