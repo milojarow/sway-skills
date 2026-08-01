@@ -106,7 +106,7 @@ Proof — same declarations, two class names, one window, one screenshot: `.fram
 
 **Fix: prefix every class in an app stylesheet** — `.mytool-frame`, `.mytool-bar`, `.mytool-hint`. Never use these bare:
 
-`frame` · `background` · `view` · `flat` · `title` · `subtitle` · `header` · `card` · `dim-label` · `body` · `heading` · `toolbar` · `osd` · `entry` · `linked` · `circular` · `suggested-action` · `destructive-action`
+`frame` · `background` · `view` · `flat` · `title` · `subtitle` · `header` · `card` · `dim-label` · `body` · `heading` · `toolbar` · `osd` · `entry` · `progress` · `trough` · `linked` · `circular` · `suggested-action` · `destructive-action`
 
 ### Catching it without a compositor
 
@@ -175,6 +175,50 @@ after:   rows 22..35   (22 px above, 20 px below)  <- height from .bar padding, 
 ```
 
 Fix: let the height come from padding and pin only the width — `col.set_size_request(W, -1)` and `win.set_default_size(W, -1)`. The row is then centred by construction instead of by arithmetic.
+
+## CSS: after a node refuses twice, stop writing selectors — draw it yourself
+
+`.frame` and the `entry` node above are two instances of one pattern: **a composite widget's internal nodes belong to the theme, not to the app stylesheet.** `GtkProgressBar` is the third.
+
+| node | what was tried | what happened |
+|---|---|---|
+| `.frame` (bare class) | `border: 1px solid #00ecec` | rendered theme grey; the same rule under `.mytool-frame` rendered cyan |
+| `entry` box | `padding`, `min-height`, `color` via `entry.path`, `.path`, bare `entry` | all parsed clean, all did nothing; only the inner `text` node answered |
+| `progress` (`GtkProgressBar`) | `progress`, `> trough > progress`, `background-image: none`, four `min-height` values | fill always came out the theme's accent colour; `min-height` ignored entirely |
+
+Nothing warns in any of the three: no CSS parse error, no `GTK-CRITICAL`, no log line. The rule appears to apply and quietly loses. Renaming does not help here the way it does for `.frame` — `progress` and `trough` are *node names*, not classes, so there is no app-side name to prefix.
+
+**The rule: the second failure on the same node is the signal. Stop writing selectors and draw the thing.** A `Gtk.DrawingArea` has no theme node to lose to:
+
+```python
+self.frac = 0.0
+self.bar = Gtk.DrawingArea()
+self.bar.set_content_height(3)
+self.bar.set_hexpand(True)
+self.bar.set_valign(Gtk.Align.CENTER)
+self.bar.set_draw_func(self._draw_bar)
+
+def _draw_bar(self, _area, cr, w, h):
+    cr.set_source_rgb(0x24 / 255, 0x1f / 255, 0x38 / 255)   # trough
+    cr.rectangle(0, 0, w, h); cr.fill()
+    cr.set_source_rgb(0.0, 0xec / 255, 0xec / 255)          # fill
+    cr.rectangle(0, 0, w * self.frac, h); cr.fill()
+
+def _set_frac(self, f):
+    self.frac = max(0.0, min(1.0, f))
+    self.bar.queue_draw()
+```
+
+Measured after the swap: the fill reads exactly the requested `(0, 236, 236)` across the full 598 px width. No theme, no `min-height` argument, no cascade to lose. `set_content_height()` is a widget call, so the 3 px is not a CSS request the theme can override either.
+
+The general shape of the escape hatch, in order of preference:
+
+1. Prefix the class, if the losing selector is a *class* (`.frame` → `.mytool-frame`).
+2. Target the leaf node the theme actually styles (`.mytool-path text`), if there is one that answers.
+3. Move geometry to a container you own — a plain `Gtk.Box` honours `padding` and `border` reliably.
+4. If the node itself is the problem, replace the widget with a `Gtk.DrawingArea` and a draw func.
+
+Read the computed style (below) *before* shipping, so a losing rule is caught at the readback rather than in a screenshot. For geometry there is no colour to read back, so compare `widget.measure(Gtk.Orientation.VERTICAL, w)` against what the rule should have produced.
 
 ## Text renders soft by default (`gtk-font-rendering: AUTOMATIC`, GTK ≥ 4.16)
 
@@ -249,6 +293,8 @@ A `Gtk.Label` has no height constraint of any kind. Put a label, a plain entry, 
 - **`WidgetPaintable.snapshot()` on an unmapped window renders nothing** — geometry checks need a real (nested/headless) compositor.
 - **`padding` / `min-height` / `color` on an `entry` node do nothing** — text properties go to `.cls text`, vertical rhythm goes to the containing `Gtk.Box`.
 - **A vertical `Gtk.Box` packs children at the top** — pinning window height with `set_size_request` leaves the content glued to the top border; pin width only and let padding set the height.
+- **`progress` / `trough` are node names, not classes** — there is nothing to prefix, and `min-height` plus the fill colour both stay the theme's.
+- **The second failed selector on the same node is the stop signal** — replace the widget with a `Gtk.DrawingArea` + draw func; it has no theme node to lose to.
 - **`gtk-font-rendering: AUTOMATIC` (GTK ≥ 4.16) overrides the system hint settings** — set `MANUAL` + `hintfull` per process; "chopped glyph tops" is soft rasterisation, not clipping.
 - **A GTK-vs-GTK screenshot comparison proves nothing** — the ground truth is a PangoCairo render with no widget in the path.
 - **Reported geometry bugs are often rendering bugs** — build the no-constraint control (`Gtk.Label`) first; if everything renders identically, nothing is clipping.
