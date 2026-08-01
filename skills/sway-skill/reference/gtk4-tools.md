@@ -102,7 +102,7 @@ A rule that looks obviously correct renders wrong, with **no CSS parse error, no
 
 `frame` is a class GTK themes style themselves (it is what `GtkFrame` uses). The theme's rule wins even though the app provider is installed at `GTK_STYLE_PROVIDER_PRIORITY_APPLICATION` (600) against the theme's 400 — presumably on specificity. The mechanism does not matter; the observable fact does: **the theme wins.** Themes that define a lot of generic classes (Catppuccin, Adwaita derivatives) make this common.
 
-Proof — same declarations, two class names, one window, one screenshot: `.frame` renders a dull grey border, `.peek-frame` renders bright cyan. Nothing else differs. (Ruled out first: the `border:` shorthand. Shorthand and longhand both render correctly when the class name does not collide.)
+Proof — same declarations, two class names, one window, one screenshot: `.frame` renders a dull grey border, `.mytool-frame` renders bright cyan. Nothing else differs. (Ruled out first: the `border:` shorthand. Shorthand and longhand both render correctly when the class name does not collide.)
 
 **Fix: prefix every class in an app stylesheet** — `.mytool-frame`, `.mytool-bar`, `.mytool-hint`. Never use these bare:
 
