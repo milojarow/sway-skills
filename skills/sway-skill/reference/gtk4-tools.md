@@ -123,6 +123,59 @@ print(tuple(round(v * 255) for v in (c.red, c.green, c.blue)))
 
 Colour *and* geometry together still need a real render: a nested headless sway + `grim` + per-row pixel analysis. `Gtk.WidgetPaintable.snapshot()` on a merely *realized* (unmapped) window does **not** work — the widget draws nothing and the PNG comes out flat background.
 
+## CSS: the `entry` node ignores `padding`, `min-height` and `color` — only the inner `text` node answers
+
+Half a stylesheet can be decorative without a single error anywhere. These rules parse cleanly and do nothing:
+
+```css
+entry.path { color: #d8d4f0; padding: 12px 14px 12px 0; font-size: 15px; }
+```
+
+The entry keeps the theme's colour and the theme's height. Verified silent — hooking `Gtk.CssProvider::parsing-error` produces zero output.
+
+Same entry, same class, five selectors, measured one at a time:
+
+| selector | entry colour | entry height | inner `text` colour |
+|---|---|---|---|
+| `entry.path { color; padding }` | unchanged | 22 | unchanged |
+| `.path { color; padding }` | unchanged | 22 | unchanged |
+| `entry { color; padding }` | unchanged | 22 | unchanged |
+| `text.path { color }` | unchanged | 22 | unchanged |
+| **`.path text { color }`** | unchanged | 22 | **applied** |
+
+`.path text` working proves the class *does* land on the entry's node (it is the descendant combinator's anchor) — it is the entry node's own box and colour that will not take app CSS. `min-height` on it is ignored too. Themes also set an explicit colour on the `text` node, which is why inheritance from the parent does not reach it either. `get_css_name()` still returns `"entry"` and the child still returns `"text"` — the node names are not the surprise, the styling reach is.
+
+**Rule 1 — every text property goes to `text`, not to the entry:**
+
+```css
+.mytool-path text {
+  color: #d8d4f0;
+  font-family: "JetBrainsMono Nerd Font", monospace;
+  font-size: 15px;
+  caret-color: #00ecec;
+}
+.mytool-path text selection { background: #00ecec; color: #0a0612; }
+```
+
+**Rule 2 — vertical rhythm goes on the row that *contains* the entry, never on the entry.** A `Gtk.Box` honours `padding` and `border` perfectly: a box with `padding: 10px 14px; border: 1px` around a 24 px entry measures 46 px, exactly 24 + 20 + 2.
+
+```css
+.mytool-bar { padding: 15px 0; }     /* the Gtk.Box holding the entry */
+```
+
+### The bug the ignored padding actually causes
+
+Entry padding silently does nothing, so the row measures 24 px while the window height is pinned with `set_size_request(720, 56)`. **A vertical `Gtk.Box` packs its children at the top**, so the text sits glued under the 1 px top border with 32 px of dead space below — which reads as *"the top border is eating the top of the text."*
+
+Text pixel rows within the 56 px surface:
+
+```
+before:  rows  7..20   (7 px above, 35 px below)   <- pinned height, entry padding ignored
+after:   rows 22..35   (22 px above, 20 px below)  <- height from .bar padding, width-only size_request
+```
+
+Fix: let the height come from padding and pin only the width — `col.set_size_request(W, -1)` and `win.set_default_size(W, -1)`. The row is then centred by construction instead of by arithmetic.
+
 ---
 
 ## Walls
@@ -135,3 +188,5 @@ Colour *and* geometry together still need a real render: a nested headless sway 
 - **A bare generic class name (`.frame`, `.entry`, `.card`…) loses to the GTK theme, silently** — prefix every app class.
 - **`get_color()` caches** — install the CSS provider before creating the widget or the readback lies.
 - **`WidgetPaintable.snapshot()` on an unmapped window renders nothing** — geometry checks need a real (nested/headless) compositor.
+- **`padding` / `min-height` / `color` on an `entry` node do nothing** — text properties go to `.cls text`, vertical rhythm goes to the containing `Gtk.Box`.
+- **A vertical `Gtk.Box` packs children at the top** — pinning window height with `set_size_request` leaves the content glued to the top border; pin width only and let padding set the height.
