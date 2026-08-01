@@ -92,6 +92,39 @@ if (_LAYER_SO not in os.environ.get("LD_PRELOAD", "")
 
 ---
 
+## CSS: generic class names belong to the theme — prefix everything
+
+A rule that looks obviously correct renders wrong, with **no CSS parse error, no GTK warning, no log line**. Typical shape: a `1px solid #00ecec` border comes out a dull theme grey, and it gets reported as a border bug — the border is there, it is just the theme's colour.
+
+```css
+.frame { border: 1px solid #00ecec; background: #0a0612; }   /* renders grey */
+```
+
+`frame` is a class GTK themes style themselves (it is what `GtkFrame` uses). The theme's rule wins even though the app provider is installed at `GTK_STYLE_PROVIDER_PRIORITY_APPLICATION` (600) against the theme's 400 — presumably on specificity. The mechanism does not matter; the observable fact does: **the theme wins.** Themes that define a lot of generic classes (Catppuccin, Adwaita derivatives) make this common.
+
+Proof — same declarations, two class names, one window, one screenshot: `.frame` renders a dull grey border, `.peek-frame` renders bright cyan. Nothing else differs. (Ruled out first: the `border:` shorthand. Shorthand and longhand both render correctly when the class name does not collide.)
+
+**Fix: prefix every class in an app stylesheet** — `.mytool-frame`, `.mytool-bar`, `.mytool-hint`. Never use these bare:
+
+`frame` · `background` · `view` · `flat` · `title` · `subtitle` · `header` · `card` · `dim-label` · `body` · `heading` · `toolbar` · `osd` · `entry` · `linked` · `circular` · `suggested-action` · `destructive-action`
+
+### Catching it without a compositor
+
+Read the **computed** style in-process. No window is shown, so it never steals focus:
+
+```python
+lbl = Gtk.Label(); lbl.add_css_class("mytool-prompt")
+w = Gtk.Window(); w.set_child(lbl); w.realize()      # surface exists, never mapped
+c = lbl.get_color()
+print(tuple(round(v * 255) for v in (c.red, c.green, c.blue)))
+```
+
+**Trap:** `get_color()` caches. Install the CSS provider *before* creating the widget, or the readback returns the pre-provider value and it looks like `Gtk.StyleContext.add_provider_for_display` is a no-op. It is not — provider-before-widget returns the expected value.
+
+Colour *and* geometry together still need a real render: a nested headless sway + `grim` + per-row pixel analysis. `Gtk.WidgetPaintable.snapshot()` on a merely *realized* (unmapped) window does **not** work — the widget draws nothing and the PNG comes out flat background.
+
+---
+
 ## Walls
 
 - **`Gtk.Application` costs ~400 ms of invisible startup** — use `Gtk.init()` + `GLib.MainLoop()` for keybind-launched windows.
@@ -99,3 +132,6 @@ if (_LAYER_SO not in os.environ.get("LD_PRELOAD", "")
 - **A/B startup timings must be interleaved** — sequential runs measure machine load, not the change.
 - **`flock` after `import gi` is too late** — the duplicate has already paid full GTK startup.
 - **Re-exec for `LD_PRELOAD` is ~40 ms per launch** — put it in the `bindsym` and keep re-exec as the manual-launch fallback.
+- **A bare generic class name (`.frame`, `.entry`, `.card`…) loses to the GTK theme, silently** — prefix every app class.
+- **`get_color()` caches** — install the CSS provider before creating the widget or the readback lies.
+- **`WidgetPaintable.snapshot()` on an unmapped window renders nothing** — geometry checks need a real (nested/headless) compositor.
