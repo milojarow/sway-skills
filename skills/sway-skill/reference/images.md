@@ -5,6 +5,67 @@ swayimg is an image viewer for Wayland/DRM with Lua-based configuration. It supp
 
 ---
 
+## Version note: 5.5 deprecated the Lua setters in favour of fields
+
+swayimg 5.5 deprecates the setter *functions* of the Lua API in favour of plain
+*fields*. The setters still work, but every call prints:
+
+```
+WARNING: Function `swayimg.viewer.set_default_scale()` is deprecated and will be
+removed in a future release, use `swayimg.viewer.default_scale field` instead
+```
+
+Migrations verified against 5.5, same semantics, measured pixel-for-pixel:
+
+| 5.0–5.4 (deprecated) | 5.5 (field) |
+|---|---|
+| `swayimg.viewer.set_default_scale('real')` | `swayimg.viewer.default_scale = 'real'` |
+| `swayimg.text.hide()` | `swayimg.text.visible = false` |
+| `swayimg.text.show()` | `swayimg.text.visible = true` |
+
+Not every setter is deprecated — `swayimg.viewer.set_text…` was still current in 5.5.
+**The rest of this reference documents the setter API**, which keeps working under
+5.5 with the warning above. Before converting any other setter, get its real field
+name from the source instead of guessing it from the setter name:
+
+- `/usr/share/doc/swayimg/CONFIG.md` (ships with the package) — the full API, with
+  the version each field was introduced in.
+- `/usr/share/swayimg/swayimg.lua` — LuaLS annotations; deprecated symbols are
+  marked `---@deprecated`.
+- `strings $(command -v swayimg) | grep -E '^swayimg\.'` — enumerates the API with
+  no docs installed, and distinguishes `foo field` from `set_foo()`.
+
+### The trap: the warning is DRAWN on the image, not just logged
+
+The warning does not live only in stderr — swayimg renders it as a **status overlay
+inside its own window**. In a freeze-and-crop flow (a frozen full-screen grab
+displayed by swayimg with a region selector on top) the user sees an "error" over
+the frozen screen on every capture, and the text band can end up inside the crop.
+A script backgrounded with `2>/dev/null` hides the stderr copy while the on-screen
+band still appears — which is why the symptom gets reported as "I get an error when
+I capture" rather than as log noise.
+
+### Verifying a drawn warning (A/B with a harness that proves itself)
+
+A warning that is *drawn* is measured with captures, not by reading stderr:
+
+1. **Noise floor first.** Run the OLD variant twice, unchanged, and compare
+   (`magick compare -metric AE a.png b.png`). It must be 0. If it is not, the
+   suspect is the harness, not the code.
+2. **A/B.** Old vs new. The difference must be exactly the warning band: get its
+   bounding box with `magick <diff> -fuzz 10% -trim -format "%wx%h+%X+%Y"` and crop
+   that region out of both to see which side draws what.
+3. **Control.** Repeat the A/B against a value that *must* change the render (e.g.
+   `default_scale = 'fit'` vs `'real'`). Without this step, "0 difference" does not
+   prove the test can discriminate at all.
+
+For `real` and `fit` to differ you need an image **larger than the screen**:
+`optimal` means "100% or less, to fit", so on a small image it coincides with `real`.
+
+Valid scales (`fixed_scale_t`): `optimal`, `width`, `height`, `fit`, `fill`, `real`, `keep`.
+
+---
+
 ## Basic Usage
 
 ```
