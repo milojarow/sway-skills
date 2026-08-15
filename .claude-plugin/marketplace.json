@@ -1,6 +1,6 @@
 {
   "name": "sway-skills",
-  "description": "Expert skill for sway / SwayFX 0.5.3 — window management, config, keybindings, FX effects, swaybar/swaylock/swayidle, IPC, swayr, and live palette-theming.",
+  "description": "Expert skill for sway / SwayFX 0.6 — window management, config, keybindings, FX effects, swaybar/swaylock/swayidle, IPC, swayr, and live palette-theming.",
   "owner": {
     "name": "milojarow",
     "url": "https://github.com/milojarow"
@@ -9,8 +9,8 @@
     {
       "name": "sway-skills",
       "source": "./",
-      "description": "One expert skill for this machine's sway / SwayFX 0.5.3 — window management, config, keybindings, SwayFX effects, swaybar, swaylock/swayidle, inputs, outputs, IPC, swayr, swayimg, and the live palette-theming system.",
-      "version": "2.1.11",
+      "description": "One expert skill for this machine's sway / SwayFX 0.6 — window management, config, keybindings, SwayFX effects, swaybar, swaylock/swayidle, inputs, outputs, IPC, swayr, swayimg, and the live palette-theming system.",
+      "version": "2.1.12",
       "author": {
         "name": "milojarow",
         "url": "https://github.com/milojarow"

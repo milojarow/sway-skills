@@ -1,10 +1,10 @@
 # sway-skills
 
-**One expert Claude Code skill for this machine's window manager — [SwayFX](https://github.com/WillPower3309/swayfx) 0.5.3 (a fork of [sway](https://swaywm.org/) 1.11).**
+**One expert Claude Code skill for this machine's window manager — [SwayFX](https://github.com/WillPower3309/swayfx) 0.6 (a fork of [sway](https://swaywm.org/) 1.12).**
 
 ## What is this?
 
-A single skill, `sway-skill`, that makes Claude a complete expert on this machine's sway: window management, config, keybindings, **SwayFX visual effects** (rounded corners, blur, shadows, dim-inactive, layer effects), swaybar, swaylock/swayidle, inputs, outputs, IPC, swayr — plus this machine's **live palette-theming system** and its **custom functionalities** (resize/swap/scratchpad modes, screenshots, recording, power menu, clipboard, gamma, emoji picker, …).
+A single skill, `sway-skill`, that makes Claude a complete expert on this machine's sway: window management, config, keybindings, **SwayFX visual effects** (rounded corners, blur, shadows, dim-inactive, layer effects, animations), swaybar, swaylock/swayidle, inputs, outputs, IPC, swayr — plus this machine's **live palette-theming system** and its **custom functionalities** (resize/swap/scratchpad modes, screenshots, recording, power menu, clipboard, gamma, emoji picker, …).
 
 Talking to the skill = talking to this machine's own sway. It consolidates what used to be 11 separate sub-skills into one (no inter-skill trigger competition) with progressive-disclosure reference files.
 
@@ -12,7 +12,7 @@ Talking to the skill = talking to this machine's own sway. It consolidates what 
 
 ```
 skills/sway-skill/
-  SKILL.md            # router + overview (SwayFX 0.5.3)
+  SKILL.md            # router + overview (SwayFX 0.6)
   reference/
     fundamentals.md   keybindings.md   config.md   swayfx.md
     ipc.md            inputs.md        outputs.md  bar.md
