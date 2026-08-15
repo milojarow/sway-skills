@@ -46,7 +46,7 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 - **"Rounded corners / blur / shadows / dim look?"** → swayfx.md (this is SwayFX, not vanilla sway).
 - **"Change the color theme / it recolors everything?"** → theming.md (`$mod+t`).
 - **"What does `$mod+r` / `$mod+Shift+r` / `Print` / the power menu do here?"** → this-system.md, then `man <feature>`.
-- **"An app can't share my screen / the picker cancels itself?"** → screen-sharing.md (portal chain; output-only selection is by design).
+- **"An app can't share my screen / the picker cancels itself / can I share just one window?"** → screen-sharing.md (portal chain; a one-click monitor pick is correct, and per-window capture exists — it needs a dmenu chooser, not slurp).
 - **Writing a GTK4 launcher/popup for a keybind — slow to appear, `app_id` won't match, CSS silently ignored?** → gtk4-tools.md.
 - **Scripting sway / querying state?** → ipc.md (`swaymsg -t get_tree`, events).
 - **"Did that animation / blur / corner_radius actually do anything?"** → visual-verification.md (a `{"success": true}` only means it parsed).
