@@ -48,10 +48,33 @@ One-line form: `layer_effects <layer-namespace> <effects...>`. Find a surface's 
 Native animations ship **disabled by default** and are enabled by a single directive:
 
 ```
-animation_duration_ms 250
+animation_duration_ms 250          # range 0–5000; 0 = off (default), 250 = upstream's suggestion
 ```
 
-That one setting covers resize, window movement, window open/close, and workspace switching. If nothing animates, the first thing to check is that the directive is present at all — absence, not misconfiguration, is the default state.
+That one setting covers resize, window movement, window open/close, and workspace switching — three separate upstream changes behind one knob, even though the man page only mentions open/close. If nothing animates, the first thing to check is that the directive is present at all — absence, not misconfiguration, is the default state.
+
+**It is config-or-runtime.** `swaymsg animation_duration_ms 250` applies to the live session (measured: `{"success": true}`) with no reload and no restart — so A/B-ing a duration costs nothing.
+
+**There is exactly one knob.** No easing/curve, no `for_window … animate`, no per-animation-type duration. Anyone looking for those is looking for something that does not exist in 0.6.
+
+To settle the same question on a *future* version without guessing, ask the binary — config tokens live in it as literals:
+
+```bash
+strings $(readlink -f $(command -v sway)) | grep -iE "^animation|animate" | sort -u
+```
+
+In 0.6 that returns only `animation_duration_ms` plus its two error strings and `animation_manager.tick`, which is what "one global knob" looks like from the outside.
+
+> A `{"success": true}` from `swaymsg` means the directive parsed — **not** that a pixel moved. To prove a visual directive actually renders, see [visual-verification.md](visual-verification.md).
+
+## What the sway 1.12 base changed under the fork
+0.6 inherits upstream sway 1.12, and a few of those changes alter behaviour regardless of any FX directive:
+
+- **An unsupported GPU no longer refuses to start.** Where the compositor used to abort on the proprietary NVIDIA driver, it now starts and shows an informational swaynag. `--unsupported-gpu` / `SWAY_UNSUPPORTED_GPU` still exist, but all they do now is silence the message.
+- **`output color_profile srgb` applies the piecewise sRGB transfer function**, not gamma 2.2. Pass `gamma22` for the old behaviour. The effective default did not change.
+- **New protocols are advertised**: `ext_workspace_manager_v1`, `xdg_toplevel_tag_manager_v1`, `color_manager_v1`, `wl_fixes`. `ext-workspace-v1` is the one that matters for bars and widgets — it is the standard workspace protocol, so a status bar no longer has to speak sway-specific IPC to track workspaces.
+- **HDR10** is available with the Vulkan renderer.
+- **Display managers** are now officially supported for starting the session.
 
 ## Misc
 - `titlebar_separator enable|disable` — line between titlebar and content.
