@@ -53,6 +53,29 @@ animation_duration_ms 250          # range 0–5000; 0 = off (default), 250 = up
 
 That one setting covers resize, window movement, window open/close, and workspace switching — three separate upstream changes behind one knob, even though the man page only mentions open/close. If nothing animates, the first thing to check is that the directive is present at all — absence, not misconfiguration, is the default state.
 
+### What the knob actually animates — measured inventory
+
+One global knob, but the compositor does **not** animate everything. Measured on 0.6 with the headless frame-counting harness ([visual-verification.md](visual-verification.md)): a fixed choreography, every event repeated, 250 ms vs 0 ms. An animated event produces a burst of ~15 frames at 60 Hz; a non-animated one produces 1–2 isolated frames, indistinguishable from the 0 ms take.
+
+| Action | Animates? | Frames @250 ms | Frames @0 ms |
+|---|---|---:|---:|
+| Open window | yes | 15 | 1 |
+| Close window | yes | 16 | 1 |
+| Resize / move (incl. tiled→floating) | yes | 15 | 1 |
+| Workspace switch | yes | 15 | 1 |
+| Layout change (`layout tabbed`, `toggle split`) | yes | 15–16 | 1–2 |
+| **Fullscreen on/off** | **no** | 1–2 | 1–2 |
+| **Scratchpad hide/show** | **no** | 1–2 | 1–2 |
+| Focus change | no (border repaint only) | 0–2 | 0–1 |
+
+The two surprises: **fullscreen does not animate** despite being the largest geometry change there is, and **layout change does** — it enters through the resize/move path because the containers change geometry.
+
+**Why scratchpad is flat, mechanically.** `move scratchpad` does not unmap the window; it moves it to the hidden `__i3_scratch` workspace. That is neither open/close nor a user workspace switch (the workspace animation is for the user changing workspace, not for moving a container between them), so it enters through no animated path.
+
+Do not confuse this with `scratchpad_minimize enable|disable` (`man 5 sway`) — that governs how app minimize requests are treated, not animation.
+
+> **Measuring one of these yourself: make sure the event does not drag another animatable event with it.** The first `scratchpad show` *does* produce a burst — sway returns the window **floating**, so that first show carries a tiled→floating conversion, and what animated was that geometry change. Run `floating enable` before sending it to the scratchpad and all four scratchpad events go flat, with the burst appearing earlier on the `floating enable` instead. See the compound-event rule in [visual-verification.md](visual-verification.md).
+
 **It is config-or-runtime.** `swaymsg animation_duration_ms 250` applies to the live session (measured: `{"success": true}`) with no reload and no restart — so A/B-ing a duration costs nothing.
 
 **There is exactly one knob.** No easing/curve, no `for_window … animate`, no per-animation-type duration. Anyone looking for those is looking for something that does not exist in 0.6.

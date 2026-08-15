@@ -55,6 +55,19 @@ ffmpeg -v error -i x.mp4 -vf "crop=300:200:0:400,signalstats,\
 
 Keep the frame whose YAVG spikes, and trim each take against **its own** flash. The alignment becomes a measurement rather than a judgement call.
 
+## The compound-event trap: repeat every event 2–3 times
+
+An A/B is only about the event you think you triggered. If the action drags a *second*, animatable change along with it, the burst you measure belongs to the passenger and the take looks impeccable while answering the wrong question.
+
+Measured case: asking whether the scratchpad animates. The first `scratchpad show` produced a 14-frame burst — on its own, "the scratchpad animates" is irresistible and false. Sway returns the window **floating**, so that first show carried a tiled→floating conversion, and the resize/move path animated *that*. The second show (already floating) was flat.
+
+**The asymmetry between repetition 1 and repetition 2 is the tell.** So:
+
+- **Repeat each event 2–3 times in the choreography.** If the first differs from the second, there is a hidden event inside the first.
+- **Then isolate it** by performing the suspected passenger up front as its own step (here: `floating enable` before sending the window to the scratchpad). If the burst moves to that step and the event under test goes flat, the passenger was the animation.
+
+Generalized: **before believing an A/B, ask what else the action changed.** Correct data about a compound event is still a wrong answer.
+
 ## Hygiene when the recording will be published
 
 A bare `fastfetch` prints `user@host` and `Local IP`. For footage that leaves the machine, name the modules explicitly and drop `Title` and `LocalIp`:
@@ -72,3 +85,4 @@ Inspect the frame **before** uploading, not after.
 - **Two hand-driven runs are not an A/B** — script the choreography, change one line, run it twice.
 - **The first recorded frame is not t=0** — damage-based capture starts whenever damage starts; align on a scripted flash.
 - **Isolated (non-burst) frames are the control** — if they move too, the difference you measured is load, not drawing.
+- **A compound event answers the wrong question with correct data** — repeat each event 2–3 times; if the first burst differs from the second, something else rode along with it.
