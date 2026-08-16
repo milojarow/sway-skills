@@ -78,6 +78,22 @@ Do not confuse this with `scratchpad_minimize enable|disable` (`man 5 sway`) —
 
 **It is config-or-runtime.** `swaymsg animation_duration_ms 250` applies to the live session (measured: `{"success": true}`) with no reload and no restart — so A/B-ing a duration costs nothing.
 
+### Do NOT set the duration to 0 at runtime as a workaround
+
+The workaround circulating for the 0.6 bug where a workspace comes back **black after leaving fullscreen** is `animation_duration_ms 0`. Applied **live** with `swaymsg`, it makes the damage worse and irreversible — measured on 0.6:
+
+- The block that animates the workspace switch is also the **only** code that returns a workspace's alpha to 1, and the whole block is gated on `animation_duration_ms > 0`.
+- Leaving a workspace parks it at alpha 0. That is normal: entering it restores it.
+- Setting the duration to 0 does not "turn the animation off" — it turns off the **restorer** and leaves the zeros in place. Every already-faded workspace stays invisible **permanently**, with no recovery path, not even the one the original bug still had.
+
+The same knob is the switch for both the fault and the repair, so turning it off freezes the broken state instead of clearing it.
+
+**Before disabling any effect as a workaround, ask whether that feature is also what repairs the state it leaves behind.** The concrete alert shape: the state in question is a field rewritten on every transition (alpha, position, z-order, visibility flags) and its rewrite path sits behind the same `if` as the feature. Grep the guard before touching the knob.
+
+If it has to be disabled anyway, **edit the config and let the next start come up clean** — that is where the workaround is safe. In a live session, first walk through every affected workspace with the feature still on so the state is left healthy, and disable last.
+
+> Report the dangerous workaround next to the bug, not separately: whoever reads the old issue will copy it. Upstream this went in as a second repro mode (`MODE=runtime-zero`) on `wlrfx/swayfx#569`.
+
 **There is exactly one knob.** No easing/curve, no `for_window … animate`, no per-animation-type duration. Anyone looking for those is looking for something that does not exist in 0.6.
 
 To settle the same question on a *future* version without guessing, ask the binary — config tokens live in it as literals:
