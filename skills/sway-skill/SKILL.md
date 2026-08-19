@@ -50,5 +50,6 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 - **Writing a GTK4 launcher/popup for a keybind — slow to appear, `app_id` won't match, CSS silently ignored?** → gtk4-tools.md.
 - **Scripting sway / querying state?** → ipc.md (`swaymsg -t get_tree`, events).
 - **"Did that animation / blur / corner_radius actually do anything?"** → visual-verification.md (a `{"success": true}` only means it parsed).
+- **"Is the config valid? `sway --validate` came back clean."** → config.md — it returns exit 0 and empty output on unclosed blocks, missing `include` targets and nonexistent commands. A green `--validate` is not evidence; only a real (nested headless) load is.
 
 This machine's custom features each have a man page (`~/.local/share/man/man1/`) — this-system.md is the index; `man <name>` is the full doc.

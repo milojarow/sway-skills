@@ -257,6 +257,37 @@ swaymsg reload
 # Check for errors — swaynag will display them if any
 ```
 
+### `sway --validate` is NOT a gate — it passes green on a broken config
+
+Measured on SwayFX 0.6 (sway 1.12 base) against a real modular config of ~300 files:
+`sway --validate -c <file>` returns **exit 0 with empty output** for all of these:
+
+- a `bindsym` invoking a command that does not exist (`bindsym Mod4+z no_such_command`)
+- an unclosed block (`output * {` at end of file)
+- an `include` pointing at a file that does not exist
+- an included file deleted while running (a theme symlink removed)
+
+The **only** thing that makes it fail (exit 1, with a message) is the file passed to
+`-c` being missing:
+
+```
+[ERROR] [sway/config.c:496] /nope/nope.conf not found
+```
+
+**Consequence:** a green `sway --validate` says nothing about the validity of the
+config. Reporting it as "the config validates" is fabricating evidence.
+
+If a real load proof is needed, the only one is **loading it** — a nested headless
+sway — and reading the `[ERROR]` lines from its log. Caveat: that **executes** the
+`exec`/`exec_always` lines, so run against the operator's live session can kill
+processes (those lines usually carry `pkill`). Strip them first, or run under
+`dbus-run-session` with the headless backend.
+
+**Positive control is mandatory.** This is exactly the "a zero is not evidence"
+failure mode: the empty output of `--validate` looks identical when the config is
+healthy and when the instrument cannot see. Before citing a clean `--validate`,
+break the config on purpose and confirm it screams. On 0.6 it does not.
+
 ---
 
 ---
