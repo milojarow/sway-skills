@@ -2,27 +2,46 @@
 
 Wayland drag-and-drop is a **client-to-client** protocol (`wl_data_device`): the compositor only routes it. So a failed drop is almost never a sway config problem — it is one of the two clients. The facts below are measured on wlroots 0.20.2 / SwayFX 0.6, with every app running Wayland-native (confirmed by `swaymsg -t get_tree` reporting `app_id`, not `class` — an `class` field means XWayland, which changes the whole picture).
 
-## Chromium/Electron cannot be the SOURCE of a drop into another Chromium/Electron window
+## Chromium/Electron never inserts a dropped LINK or TEXT — whatever the source
 
-| source → target | result |
-|---|---|
-| GTK file manager → terminal | works |
-| GTK file manager → Chromium (file) | works |
-| GTK file manager → Electron (file) | works |
-| Chromium → Electron | **not delivered** |
-| Electron → Chromium | **not delivered** |
+The discriminator is the **payload**, not the toolkit at either end.
 
-The **receiver is not the problem**: the same Electron window happily accepts a file dropped from a GTK file manager. What fails is a Chromium-family client acting as the **source** toward another Chromium-family client. Do not spend time on the drop target, its listeners, or `for_window` rules — reproduce the same drop from a non-Chromium source first, and the fault is located in one step.
+| payload | target | result |
+|---|---|---|
+| file | Chromium / Electron | **works** — the attach overlay appears |
+| link or text | Chromium / Electron | the text field does not change |
+| link or text | terminal | works |
 
-**Workaround: a GTK middleman rescues the case.** Drop into a small GTK window of your own and drag out of it again — that second drag does reach the Chromium target.
+Files arrive because they travel a different road (`dataTransfer.files`). That is why a file manager "can drag into the browser" and the fault looks like it belongs to the source — the difference is the payload, not the toolkit and not the origin. A GTK middleman window therefore rescues **file** drops into a Chromium target; it does nothing for a link or a text selection, because the middleman was never the problem.
 
-## The mime trap: `text/uri-list` for a link is a silent data loss
+Two earlier explanations were measured and refuted, in this order: first "a Chromium-family client cannot be the *source*", then "the mimes offered are wrong". Instrumenting the sender's `Gdk.ContentProvider` to log every read, with a local page reporting its DOM events, a link dragged out of a GTK4 client into Chromium/Electron produces:
 
-A link offered as `text/uri-list` makes Chromium read it as a **file**, fail to open it, and discard the payload **with no error at all** — the target field simply stays empty, which reads as "the drag never arrived".
+```
+target read text/uri-list
+target read text/html
+target read text/x-moz-url
+target read text/plain;charset=utf-8
+target read text/plain
+drag-end selected_action=1        (1 = COPY)
+```
 
-**Rule:** `text/uri-list` only for real local files. Links and text selections are offered **`text/plain` only**.
+So Chromium **accepts** the drop and **reads all five mime types in full** — and the text field still does not change. What is missing is the browser's own *insert-into-editable* path for an external drag, **not** the event: a page with its own `drop` handler does receive it (a local probe logged six).
 
-Verified without opening a window, in-process:
+**Formats still decide whether the event arrives; they never buy the insertion.** With `text/x-moz-url` in the offer that same probe saw `dragenter` and never `drop`; trimmed to the exact set a browser's own link drag offers (`text/uri-list` + `text/html` + `text/plain`) it arrived normally. One format too many costs you the event.
+
+## The sender gets two signals that lie — decide by destination instead
+
+The negotiated action reports COPY, and the byte reads complete. Neither says whether the application did anything with them, so any fallback shaped like *"if the target rejected it, then…"* never fires. There is nothing to infer.
+
+What works is **choosing by destination, explicitly**: an allowlist of `app_id`s where a text drop really lands (terminals), and for everything else write the value yourself — `wl-copy`, then a synthetic paste (`ydotool key ctrl+v`). To the user it is still a single drag.
+
+Three details that cost an afternoon each if found by hand:
+
+1. **Setting the clipboard from the toolkit fails silently.** Owning a Wayland selection requires a recent input *serial* in that client; a `clipboard.set()` issued as a drag ends reports success while `wl-paste` keeps returning the previous value. `wl-copy` goes through `wlr-data-control`, needs no serial, and keeps serving the data after it returns.
+2. **Nudge the pointer 1 px before reading which window has focus.** sway reassigns focus on pointer *motion* (`focus_follows_mouse` defaults to `yes`), and releasing the button generates no motion by itself — without the nudge you read the previous window and paste into the wrong one.
+3. **Terminals paste with `Ctrl+Shift+V`, not `Ctrl+V`.**
+
+Mime unions can be checked without opening a window, in-process:
 
 ```python
 p = Gdk.ContentProvider.new_union([...])
@@ -44,7 +63,9 @@ See [fundamentals.md](fundamentals.md) for `sticky`, and [gtk4-tools.md](gtk4-to
 ## Walls
 
 - **A drop that "does nothing" is a client bug, not a compositor bug** — Wayland DnD is client-to-client; sway only routes it.
-- **Chromium/Electron → Chromium/Electron never delivers** — the receiver is fine; test with a GTK source before debugging the target.
-- **A GTK middleman window restores the path** into a Chromium target.
-- **`text/uri-list` on a link is dropped silently by Chromium** — offer links and text as `text/plain` only.
+- **Test the payload before the toolkit.** File vs link/text is the axis that decides; source and target toolkits are not.
+- **Chromium/Electron never inserts a dropped link or text into an editable**, from any source — the drop is accepted and every mime is read. Do not build a fallback on "the target rejected it"; it never reports rejection.
+- **A GTK middleman window restores a file drop** into a Chromium target — and only a file drop.
+- **An extra offered mime (e.g. `text/x-moz-url`) can cost you the `drop` event entirely** — offer the set a browser's own link drag offers.
+- **For non-terminal targets, write the value yourself** — `wl-copy` + synthetic paste, after nudging the pointer 1 px so focus is current.
 - **A cross-workspace drag is not guaranteed to survive the workspace switch** — use a floating `sticky` shelf instead of relying on it.

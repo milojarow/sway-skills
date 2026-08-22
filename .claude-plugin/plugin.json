@@ -1,6 +1,6 @@
 {
   "name": "sway-skills",
-  "version": "2.1.20",
+  "version": "2.1.21",
   "description": "One expert skill for this machine's sway / SwayFX 0.6 — window management, config, keybindings, SwayFX effects, swaybar, swaylock/swayidle, inputs, outputs, IPC, swayr, swayimg, and the live palette-theming system.",
   "author": {
     "name": "milojarow",
