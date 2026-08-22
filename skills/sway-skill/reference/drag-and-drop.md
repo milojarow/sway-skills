@@ -60,6 +60,75 @@ for_window [app_id="dev.example.myshelf"] floating enable, sticky enable
 
 See [fundamentals.md](fundamentals.md) for `sticky`, and [gtk4-tools.md](gtk4-tools.md) for building the GTK4 window that acts as the shelf.
 
+## Cancelling a Wayland drag with Escape: only the compositor can
+
+Measured on wlroots 0.20.2 / SwayFX 0.6 (GTK4): **keyboard events never reach the
+origin app's toolkit while its drag is in flight**. A `Gtk.EventControllerKey` in
+CAPTURE phase on the window, logged line by line, recorded zero keypresses during
+the drag. No in-process handler can abort a drag this way — a key controller and
+a direct `drag_cancel()` call from that handler both failed, for the same reason.
+
+The compositor *does* see the keyboard during the drag — sway's own binds stay
+live (`$mod+N` still switches workspace with the button held). The pattern that
+works:
+
+1. The app enters a **sway mode** when its drag starts (`swaymsg mode drag`) and
+   leaves it on drag-end/cancel/shutdown.
+2. The mode binds Escape to a CLI call that signals the app —
+   `bindsym --to-code Escape mode "default", exec app --cancel-drag` (note:
+   `exec` swallows the rest of the line, so it must be the last item in the
+   comma chain).
+3. The signal handler calls `Gtk.DragSource.drag_cancel()` — that does kill an
+   in-flight Wayland drag (confirmed).
+
+Two traps in this pattern:
+
+- **A sway mode suspends every bind from the default mode.** If the workflow
+  depends on keys during the drag (switching workspace mid-drag), replicate
+  them inside the mode. Unbound keys still fall through to apps normally.
+- **GLib only exposes a handful of signals** (`g_unix_signal_add`: HUP, INT,
+  TERM, USR1, USR2, WINCH). If USR1/USR2 are already taken, SIGWINCH is a
+  legitimate free choice for a GUI app that never runs in a terminal.
+
+## Four traps of `Gtk.DragSource` in a window that is also a drop target
+
+Measured building a GTK4 window that is both origin and destination of drags (a
+carry-shelf). Each trap produced a symptom that looked like a different bug.
+
+1. **The window's own drop target fires on its own drags.** If the window
+   hides/collapses when it starts its own drag, the pointer is still inside it
+   → its own `Gtk.DropTarget` gets `enter` → the "open on approach" logic
+   REOPENS it. Symptom: open/close flicker on every drag-out, reads as
+   "intermittent". Guard: an own-drag-in-flight flag; `enter` returns 0 and
+   `leave` returns early while it is set.
+2. **Never rebuild the list while a drag is in flight.** A rebuild destroys the
+   row and its `DragSource` → the drag is orphaned: cancelling it does nothing,
+   and the drag ghost does NOT clear because the icon surface keeps its last
+   committed frame. Symptom: "Escape doesn't work" plus a frozen ghost. If
+   something async can refresh the list (an external watcher), defer the
+   refresh until drag-end/cancel.
+3. **The payload freezes at drag-begin.** If collapsing/closing clears the
+   selection, recomputing "what am I carrying" at drag-end sees an empty
+   selection → a 3-item drag delivers 1 via the path that re-queries, while the
+   provider (prepared earlier) is carrying 3. Capture the list at drag-begin and
+   reuse it in end/cancel.
+4. **Collapsing the origin window means MOVE, never hide/resize.** A
+   `Gtk.WidgetPaintable` used as the drag icon stays bound to the live widget;
+   unmapping it mid-drag leaves the gesture with a blank ghost. Moving the
+   window off-screen does not unmap anything. (Freezing it to a texture with
+   `renderer.render_texture()` is not a workaround either: off-screen surfaces
+   don't paint text — measured 0 bytes with ink expected on both sides.)
+
+### Bonus: `GtkListBox`'s internal click can stop firing
+
+With a `Gtk.GestureDrag` in CAPTURE phase on the listbox (for rubber-band
+selection), the listbox's internal `GtkGestureClick` stopped updating selection
+in MULTIPLE mode (plain click and Ctrl+click both dead; rubber-band and drags
+kept working). Rather than fight it: `listbox.observe_controllers()` → the sole
+`GtkGestureClick` → `set_propagation_phase(NONE)`, then implement click
+semantics by hand (plain = collapse-to-one, Ctrl = toggle, Shift = range;
+`listbox.pick()` to leave row-button clicks alone).
+
 ## Walls
 
 - **A drop that "does nothing" is a client bug, not a compositor bug** — Wayland DnD is client-to-client; sway only routes it.
@@ -69,3 +138,7 @@ See [fundamentals.md](fundamentals.md) for `sticky`, and [gtk4-tools.md](gtk4-to
 - **An extra offered mime (e.g. `text/x-moz-url`) can cost you the `drop` event entirely** — offer the set a browser's own link drag offers.
 - **For non-terminal targets, write the value yourself** — `wl-copy` + synthetic paste, after nudging the pointer 1 px so focus is current.
 - **A cross-workspace drag is not guaranteed to survive the workspace switch** — use a floating `sticky` shelf instead of relying on it.
+- **Only the compositor sees the keyboard during a Wayland drag** — cancel it via a sway mode that signals the app, not via an in-process key handler.
+- **A window that is both drag source and drop target can reopen itself on its own drag-out** — guard with an own-drag-in-flight flag.
+- **Never rebuild a list mid-drag** — it orphans the `DragSource` and leaves a ghost that Escape cannot clear.
+- **Collapsing the drag-origin window must MOVE it, never hide or resize it** — a `WidgetPaintable` drag icon stays bound to the live (and now unmapped) widget.
