@@ -33,6 +33,7 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 | Bar — swaybar config, status JSON protocol, colors | [reference/bar.md](reference/bar.md) |
 | **Screen sharing** — xdg-desktop-portal-wlr, the slurp chooser, PipeWire, layer-by-layer diagnosis | [reference/screen-sharing.md](reference/screen-sharing.md) |
 | **Writing GTK4 tools for sway** — launcher/popup startup cost, `app_id` via prgname, single-instance, CSS gotchas | [reference/gtk4-tools.md](reference/gtk4-tools.md) |
+| **Drag and drop between clients** — Chromium/Electron as source, mime traps, dragging across workspaces | [reference/drag-and-drop.md](reference/drag-and-drop.md) |
 | **Proving a visual change renders** — nested headless sway, scripted A/B takes, frame counting, sync-flash alignment | [reference/visual-verification.md](reference/visual-verification.md) |
 | Lock & idle — swaylock (appearance), swayidle | [reference/lock-and-idle.md](reference/lock-and-idle.md) |
 | Image viewer — swayimg (viewer + gallery) | [reference/images.md](reference/images.md) |
@@ -48,6 +49,7 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 - **"What does `$mod+r` / `$mod+Shift+r` / `Print` / the power menu do here?"** → this-system.md, then `man <feature>`.
 - **"An app can't share my screen / the picker cancels itself / can I share just one window?"** → screen-sharing.md (portal chain; a one-click monitor pick is correct, and per-window capture exists — it needs a dmenu chooser, not slurp).
 - **Writing a GTK4 launcher/popup for a keybind — slow to appear, `app_id` won't match, CSS silently ignored?** → gtk4-tools.md.
+- **"Dragging a file/link between two windows drops nothing"?** → drag-and-drop.md (a Chromium-family *source* into another Chromium-family window never delivers; the receiver is usually innocent).
 - **Scripting sway / querying state?** → ipc.md (`swaymsg -t get_tree`, events).
 - **"Did that animation / blur / corner_radius actually do anything?"** → visual-verification.md (a `{"success": true}` only means it parsed).
 - **"Is the config valid? `sway --validate` came back clean."** → config.md — it returns exit 0 and empty output on unclosed blocks, missing `include` targets and nonexistent commands. A green `--validate` is not evidence; only a real (nested headless) load is.
