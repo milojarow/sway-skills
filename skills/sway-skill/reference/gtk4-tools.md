@@ -75,6 +75,36 @@ import gi   # only now
 
 `flock` releases on process death (including SIGKILL), so a stale lock file is never a problem.
 
+## Never veto `close-request` to "just hide" a long-lived window
+
+A GTK4 daemon that hides its window instead of closing it is often written like this:
+
+```python
+win.connect("close-request", lambda *_: (hide(), True)[1])   # WRONG
+```
+
+Returning `True` **vetoes** the close — and that makes the window **unkillable from the compositor**: `swaymsg '[app_id="…"] kill'` is absorbed silently, exit status 0, no message anywhere.
+
+The real failure mode is not "the window won't close". It is a testing trap that costs far more:
+
+1. the script is edited,
+2. the usual kill + relaunch runs,
+3. the kill kills nothing, and the relaunch hits the single-instance `flock` and exits 0,
+4. **the next test measures the OLD binary while everyone believes it measures the patch.**
+
+Hiding is the job of the toggle keybinding (`move scratchpad` / `scratchpad show`) and of an Escape handler; a close must actually close, and persistent state survives in its own file. The `close-request` handler quits the main loop and returns `False` (see the startup skeleton above).
+
+### The five-second check before believing any test of a self-written daemon
+
+Compare the process start time against the script's mtime:
+
+```sh
+stat -c %y /proc/$PID          # when the process started
+stat -c %y ~/.scripts/mytool   # when the script was last edited
+```
+
+If the process is **older** than the script, the test measured old code. This applies to any user daemon, not just GTK ones — and it is the first thing to check whenever a patch "has no effect".
+
 ## `gtk4-layer-shell`: put `LD_PRELOAD` in the keybinding
 
 `gtk4-layer-shell` must load before `libwayland-client`, which a language binding cannot arrange from inside the process — the usual workaround is for the script to `os.execv` itself with `LD_PRELOAD` set. That second interpreter start costs ~40 ms of dead time on **every** launch. Set it in the keybinding instead, and keep the re-exec only as a fallback for launching by hand:
@@ -287,6 +317,8 @@ A `Gtk.Label` has no height constraint of any kind. Put a label, a plain entry, 
 - **No `Gtk.Application` means no `application_id`** — `GLib.set_prgname()` is what sets the sway `app_id`; without it, window criteria have nothing to match.
 - **A/B startup timings must be interleaved** — sequential runs measure machine load, not the change.
 - **`flock` after `import gi` is too late** — the duplicate has already paid full GTK startup.
+- **Returning `True` from `close-request` makes the window unkillable by `swaymsg … kill`** — the kill is absorbed silently and the relaunch bounces off the instance lock, so the next test runs the old binary. Hide from the toggle bind, not by vetoing the close.
+- **Before trusting any test of a patched daemon, compare `/proc/$PID` mtime against the script's** — an older process means the measurement is of old code.
 - **Re-exec for `LD_PRELOAD` is ~40 ms per launch** — put it in the `bindsym` and keep re-exec as the manual-launch fallback.
 - **A bare generic class name (`.frame`, `.entry`, `.card`…) loses to the GTK theme, silently** — prefix every app class.
 - **`get_color()` caches** — install the CSS provider before creating the widget or the readback lies.
