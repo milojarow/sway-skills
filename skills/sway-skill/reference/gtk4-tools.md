@@ -120,6 +120,65 @@ if (_LAYER_SO not in os.environ.get("LD_PRELOAD", "")
     ...re-exec...
 ```
 
+### Loading it from inside the script instead: `CDLL` before `import gi`
+
+When the keybinding isn't the only launch path (invoked by hand from a
+terminal, or from a wrapper that doesn't control the exec line), load the
+`.so` explicitly before `gi` is imported at all — this is what the
+gtk4-layer-shell project itself documents (`linking.md`):
+
+```python
+from ctypes import CDLL
+CDLL("libgtk4-layer-shell.so")
+
+import gi
+gi.require_version("Gtk4LayerShell", "1.0")
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gtk4LayerShell as LayerShell
+from gi.repository import Gtk, Gdk, GLib
+```
+
+**Reordering `gi.require_version()` calls does NOT fix this** — both orderings
+fail identically. GI resolves a library's *dependencies* before the library
+itself, so `libwayland-client` is always in the process before
+gtk4-layer-shell gets a chance to interpose over it, regardless of which
+`require_version` line comes first. The trade-off vs. the `LD_PRELOAD`
+keybinding above: the knowledge lives in the script instead of the bind, so
+running it by hand behaves the same as the keybind launch — nothing to
+remember at a second call site.
+
+### The failure is a silent warning, not an error — a "did it survive" test passes anyway
+
+A window whose layer-shell init failed is still a live, drawing process — just
+a normal floating window instead of a layer surface: no anchors, no screen
+coverage, doesn't take the keyboard. stderr carries the only signal:
+
+```
+Failed to initialize layer surface, GTK4 Layer Shell may have been linked after libwayland.
+GtkWindow is not a layer surface. Make sure you called gtk_layer_init_for_window()
+```
+
+A test that only checks "did the process survive" or "is the screenshot
+non-empty" passes either way. Grep for the warning, or check in-process
+without opening a window in the operator's session:
+
+```python
+LayerShell.is_layer_window(win)   # bool, no present() needed
+```
+
+`is_layer_window()` works on a realized-but-unmapped window, so it can be
+verified in the real session with nothing appearing on screen.
+
+### `Gtk.Application` also breaks layer-shell, on top of its own startup cost
+
+Registering a `Gtk.Application` brings up the Wayland display inside
+`activate` — after gtk4-layer-shell's interposition window has already
+closed, so it reproduces the same failure as the import-order trap above, on
+top of the ~400 ms `app.run()` cost documented earlier in this file. For a
+one-shot layer-shell popup, skip `GApplication` entirely and use the
+`Gtk.init()` + `GLib.MainLoop()` skeleton from the top of this file, calling
+`LayerShell.init_for_window()` right after `Gtk.Window()` is created.
+
 ---
 
 ## CSS: generic class names belong to the theme — prefix everything
@@ -319,7 +378,9 @@ A `Gtk.Label` has no height constraint of any kind. Put a label, a plain entry, 
 - **`flock` after `import gi` is too late** — the duplicate has already paid full GTK startup.
 - **Returning `True` from `close-request` makes the window unkillable by `swaymsg … kill`** — the kill is absorbed silently and the relaunch bounces off the instance lock, so the next test runs the old binary. Hide from the toggle bind, not by vetoing the close.
 - **Before trusting any test of a patched daemon, compare `/proc/$PID` mtime against the script's** — an older process means the measurement is of old code.
-- **Re-exec for `LD_PRELOAD` is ~40 ms per launch** — put it in the `bindsym` and keep re-exec as the manual-launch fallback.
+- **Re-exec for `LD_PRELOAD` is ~40 ms per launch** — put it in the `bindsym` and keep re-exec as the manual-launch fallback. Loading via `CDLL("libgtk4-layer-shell.so")` before `import gi` works too, keeps the fix inside the script instead of the bind, and reordering `gi.require_version()` calls never substitutes for either — GI resolves dependencies before the library itself.
+- **A failed gtk4-layer-shell init is a silent warning, not an error** — the window still opens, just as a normal floating window (no anchors, no keyboard). A "process survived" test passes either way; verify with `LayerShell.is_layer_window(win)` (works unmapped) or grep stderr for "may have been linked after libwayland".
+- **`Gtk.Application` breaks gtk4-layer-shell too, not just startup latency** — its Wayland display comes up inside `activate`, after the interposition window has already closed.
 - **A bare generic class name (`.frame`, `.entry`, `.card`…) loses to the GTK theme, silently** — prefix every app class.
 - **`get_color()` caches** — install the CSS provider before creating the widget or the readback lies.
 - **`WidgetPaintable.snapshot()` on an unmapped window renders nothing** — geometry checks need a real (nested/headless) compositor.
