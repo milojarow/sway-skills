@@ -35,6 +35,7 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 | **Writing GTK4 tools for sway** — launcher/popup startup cost, `app_id` via prgname, single-instance, CSS gotchas | [reference/gtk4-tools.md](reference/gtk4-tools.md) |
 | **Drag and drop between clients** — file vs link/text as the deciding axis, Chromium/Electron never inserting dropped text, mime traps, dragging across workspaces | [reference/drag-and-drop.md](reference/drag-and-drop.md) |
 | **Proving a visual change renders** — nested headless sway, scripted A/B takes, frame counting, sync-flash alignment | [reference/visual-verification.md](reference/visual-verification.md) |
+| **Synthetic input** — wtype vs ydotool, the wtype→slurp SIGSEGV and its repair, unicode typing traps | [reference/synthetic-input.md](reference/synthetic-input.md) |
 | Lock & idle — swaylock (appearance), swayidle | [reference/lock-and-idle.md](reference/lock-and-idle.md) |
 | Image viewer — swayimg (viewer + gallery) | [reference/images.md](reference/images.md) |
 | Window switcher — swayr (MRU) | [reference/swayr.md](reference/swayr.md) |
@@ -53,5 +54,6 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 - **Scripting sway / querying state?** → ipc.md (`swaymsg -t get_tree`, events).
 - **"Did that animation / blur / corner_radius actually do anything?"** → visual-verification.md (a `{"success": true}` only means it parsed).
 - **"Is the config valid? `sway --validate` came back clean."** → config.md — it returns exit 0 and empty output on unclosed blocks, missing `include` targets and nonexistent commands. A green `--validate` is not evidence; only a real (nested headless) load is.
+- **"`Print` / a screenshot binding stopped working, no error"?** → synthetic-input.md — a recent `wtype` call likely SIGSEGV'd the next `slurp`; check exit status (139), not coredump counts, and repair with one `ydotool key` event.
 
 This machine's custom features each have a man page (`~/.local/share/man/man1/`) — this-system.md is the index; `man <name>` is the full doc.

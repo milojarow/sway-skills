@@ -14,7 +14,7 @@ These live under `~/.config/sway/` (`scripts/`, `modes/`, `config.d/`) and their
 ## Capture
 | Feature | Enter | What it does |
 |---|---|---|
-| **screenshots** | `Print` (mode) | `p` = region (frozen screen + slurp → swappy), `o` = whole output → swappy, `Shift+p` = region → upload to x0.at (URL to clipboard + notification). `man screenshots` |
+| **screenshots** | `Print` (mode) | `p` = region (frozen screen + slurp → swappy), `o` = whole output → swappy, `Shift+p` = region → upload to x0.at (URL to clipboard + notification). `man screenshots`. If the binding silently does nothing, a prior `wtype` call may have SIGSEGV'd `slurp` — see [synthetic-input.md](synthetic-input.md). |
 | **recording** | `$mod+Shift+r` (mode) | `r` = region, no audio (`.webm`, VP8); `Shift+r` = region + mic (`.mp4`). Bar indicator while recording. `man recording` |
 
 ## Power / session
