@@ -28,6 +28,7 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 | Config — syntax, variables, includes, `exec`/daemon, gotchas | [reference/config.md](reference/config.md) |
 | **SwayFX effects** — corner_radius, blur, shadows, dim_inactive, layer_effects, animations, checking the running version | [reference/swayfx.md](reference/swayfx.md) |
 | IPC — `swaymsg`, protocol, `get_tree`, event subscriptions | [reference/ipc.md](reference/ipc.md) |
+| **"What is under the pointer?"** — no `get_cursor` in the IPC, `focus_follows_mouse` fires on crossing not motion, resolving it client-side from GTK + `get_tree` | [reference/pointer-resolution.md](reference/pointer-resolution.md) |
 | Inputs — keyboard/XKB, pointer/libinput, seat/multiseat | [reference/inputs.md](reference/inputs.md) |
 | Outputs — displays, scaling, rendering, DPMS, wallpaper (swaybg) | [reference/outputs.md](reference/outputs.md) |
 | Bar — swaybar config, status JSON protocol, colors | [reference/bar.md](reference/bar.md) |
@@ -52,6 +53,7 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 - **Writing a GTK4 launcher/popup for a keybind — slow to appear, `app_id` won't match, CSS silently ignored?** → gtk4-tools.md.
 - **"Dragging a file/link between two windows drops nothing"?** → drag-and-drop.md (ask what the *payload* is first: files land in Chromium/Electron, links and text never get inserted no matter the source).
 - **Scripting sway / querying state?** → ipc.md (`swaymsg -t get_tree`, events).
+- **"Which window is the pointer over?" / a nudge to re-trigger `focus_follows_mouse` does nothing?** → pointer-resolution.md — there is no `get_cursor`; resolve it client-side from the GTK window that still holds focus.
 - **"Did that animation / blur / corner_radius actually do anything?"** → visual-verification.md (a `{"success": true}` only means it parsed).
 - **"Is the config valid? `sway --validate` came back clean."** → config.md — it returns exit 0 and empty output on unclosed blocks, missing `include` targets and nonexistent commands. A green `--validate` is not evidence; only a real (nested headless) load is.
 - **"`Print` / a screenshot binding stopped working, no error"?** → synthetic-input.md — a recent `wtype` call likely SIGSEGV'd the next `slurp`; check exit status (139), not coredump counts, and repair with one `ydotool key` event.
