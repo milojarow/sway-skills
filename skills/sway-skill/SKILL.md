@@ -37,6 +37,7 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 | **Drag and drop between clients** — file vs link/text as the deciding axis, Chromium/Electron never inserting dropped text, mime traps, dragging across workspaces | [reference/drag-and-drop.md](reference/drag-and-drop.md) |
 | **Proving a visual change renders** — nested headless sway, scripted A/B takes, frame counting, sync-flash alignment | [reference/visual-verification.md](reference/visual-verification.md) |
 | **Synthetic input** — wtype vs ydotool, the wtype→slurp SIGSEGV and its repair, unicode typing traps | [reference/synthetic-input.md](reference/synthetic-input.md) |
+| **Start/stop toggle scripts** — where a "recording just finished" hook belongs (the starting instance, never the stop branch), guarding with `-s`, and testing a `slurp`-driven toggle by stubbing `slurp` on `PATH` | [reference/toggle-script-hooks.md](reference/toggle-script-hooks.md) |
 | Lock & idle — swaylock (appearance), swayidle | [reference/lock-and-idle.md](reference/lock-and-idle.md) |
 | Image viewer — swayimg (viewer + gallery) | [reference/images.md](reference/images.md) |
 | Window switcher — swayr (MRU) | [reference/swayr.md](reference/swayr.md) |
