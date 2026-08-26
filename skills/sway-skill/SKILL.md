@@ -38,7 +38,7 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 | **Proving a visual change renders** — nested headless sway, scripted A/B takes, frame counting, sync-flash alignment | [reference/visual-verification.md](reference/visual-verification.md) |
 | **Synthetic input** — wtype vs ydotool, the wtype→slurp SIGSEGV and its repair, unicode typing traps | [reference/synthetic-input.md](reference/synthetic-input.md) |
 | **Start/stop toggle scripts** — where a "recording just finished" hook belongs (the starting instance, never the stop branch), guarding with `-s`, and testing a `slurp`-driven toggle by stubbing `slurp` on `PATH` | [reference/toggle-script-hooks.md](reference/toggle-script-hooks.md) |
-| **Self-placing windows** — the constant gap/border offset on `move position`, why a self-correcting move must verify instead of trusting one correction, and excluding a self-placer from every other placement daemon | [reference/self-placing-windows.md](reference/self-placing-windows.md) |
+| **Self-placing windows** — why no `window` event fires for a floating move/resize in place (poll `get_tree` instead), `resize set` being center-anchored, the constant gap/border offset on `move position`, why a self-correcting move must verify instead of trusting one correction, and excluding a self-placer from every other placement daemon | [reference/self-placing-windows.md](reference/self-placing-windows.md) |
 | Lock & idle — swaylock (appearance), swayidle | [reference/lock-and-idle.md](reference/lock-and-idle.md) |
 | Image viewer — swayimg (viewer + gallery) | [reference/images.md](reference/images.md) |
 | Window switcher — swayr (MRU) | [reference/swayr.md](reference/swayr.md) |

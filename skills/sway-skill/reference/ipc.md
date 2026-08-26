@@ -615,6 +615,15 @@ Change values: `init`, `empty`, `focus`, `move`, `rename`, `urgent`, `reload`.
 
 Change values: `new`, `close`, `focus`, `title`, `fullscreen_mode`, `move`, `floating`, `urgent`, `mark`.
 
+**`move` fires on a container changing parents** (moving between workspaces/
+outputs/split containers) — measured, it does **not** fire when a floating
+window's position or size changes while it stays in the same container
+(`swaymsg '[app_id="x"] move position …'` / `resize set …` against a live
+subscription: zero events). A guard that needs to notice a floating
+reposition/resize in place has no event to subscribe to and must poll
+`get_tree` instead. See
+[self-placing-windows.md](self-placing-windows.md#no-window-event-fires-for-a-floating-moveresize-in-place--poll-instead).
+
 ### Event: mode
 
 ```json
