@@ -34,7 +34,7 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 | Bar — swaybar config, status JSON protocol, colors | [reference/bar.md](reference/bar.md) |
 | **Screen sharing** — xdg-desktop-portal-wlr, the slurp chooser, PipeWire, layer-by-layer diagnosis | [reference/screen-sharing.md](reference/screen-sharing.md) |
 | **Writing GTK4 tools for sway** — launcher/popup startup cost, `app_id` via prgname, single-instance, CSS gotchas | [reference/gtk4-tools.md](reference/gtk4-tools.md) |
-| **Drag and drop between clients** — file vs link/text as the deciding axis, Chromium/Electron never inserting dropped text, mime traps, dragging across workspaces | [reference/drag-and-drop.md](reference/drag-and-drop.md) |
+| **Drag and drop between clients** — file vs link/text as the deciding axis, Chromium/Electron never inserting dropped text, mime traps, reading the drop target at write time, testing synthetic drags without wrecking a live session, dragging across workspaces | [reference/drag-and-drop.md](reference/drag-and-drop.md) |
 | **Proving a visual change renders** — nested headless sway, scripted A/B takes, frame counting, sync-flash alignment | [reference/visual-verification.md](reference/visual-verification.md) |
 | **Synthetic input** — wtype vs ydotool, the wtype→slurp SIGSEGV and its repair, unicode typing traps | [reference/synthetic-input.md](reference/synthetic-input.md) |
 | **Start/stop toggle scripts** — where a "recording just finished" hook belongs (the starting instance, never the stop branch), guarding with `-s`, and testing a `slurp`-driven toggle by stubbing `slurp` on `PATH` | [reference/toggle-script-hooks.md](reference/toggle-script-hooks.md) |

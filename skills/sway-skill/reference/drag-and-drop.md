@@ -48,6 +48,65 @@ p = Gdk.ContentProvider.new_union([...])
 print(p.ref_formats().union_serialize_mime_types().to_string())
 ```
 
+## Deciding the payload at read time — sound in theory, breaks in PyGObject
+
+A drag source is told nothing about where the drop will land, which is why the
+workaround above (write something generic, then fix it with a synthetic paste)
+exists at all. There is in fact a narrower window where the target IS knowable:
+in Wayland DnD the receiver calls `wl_data_offer.receive` **after** the button
+is released, and the source's mime-write handler runs then — before the
+toolkit's drag-end. Measured: at that moment `focused_window()` already
+resolves to the real drop target, so a provider that decides its bytes inside
+the write handler can hand each target exactly the payload it wants, with
+nothing to erase afterwards.
+
+**This breaks specifically in the PyGObject binding.** Overriding
+`do_write_mime_type_async` on a `Gdk.ContentProvider` subclass emits, on every
+single drag:
+
+```
+GLib-GIO-CRITICAL: g_task_return_boolean: assertion 'G_IS_TASK (task)' failed
+Warning: g_object_unref: assertion 'G_IS_OBJECT (object)' failed
+```
+
+The data still arrives correctly — it is a completion/lifetime failure, not a
+transfer failure, and a failed `g_object_unref` declines to free rather than
+corrupting anything. But it is a leak on every drag, and none of the obvious
+fixes clear it: building the `Gio.Task` by hand (works with a Python callback
+in isolation, fails once the real callback is a C function pointer),
+delegating to `Gdk.ContentProvider.new_for_bytes` at read time so the C
+callback passes straight through C→C, passing `None` instead of the received
+`user_data`, and anchoring the provider in a long-lived list against GC
+collecting the Python subclass while GIO still holds it. A value-based
+provider (`do_ref_formats` + `do_get_value`, letting GDK's own serialiser
+produce the mime) is not an escape either — GDK answers *"Cannot provide
+contents as text/uri-list"* and never calls `do_get_value`.
+
+**The idea is sound and the binding is what stops you** — this is likely fine
+in C. From PyGObject, stay with the write-generic-then-correct approach
+documented above.
+
+## Testing synthetic drags without wrecking a live session
+
+- **`ydotool mousemove -a` does not land where you ask** — absolute mode goes
+  through pointer acceleration, as its own `--help` warns, and relative steps
+  are accelerated too. Raising the step rate once overshot and put twelve
+  drops into a browser window two windows past the intended target, changing
+  the user's tab. Pin the origin first with a huge relative move
+  (`-x -5000 -y -5000` clamps at 0,0), then step relatively from there — and
+  **verify the landing from the outcome**, never assume it. A source that logs
+  its own resolved target is the instrument.
+- A list widget with rubber-band selection usually decides drag-vs-sweep from
+  the pressed row's *selection state*, so a synthetic drag starting on an
+  unselected row can silently become a multi-select instead of a single-item
+  drag. Click to select first, then press-and-move.
+- Build a **disposable** remote target for the test
+  (`foot -- mosh host -- sh -c 'read ...'`) — never the operator's own live
+  sessions, which have real work in them.
+- A drop into a shell's line buffer does not commit on its own: send Enter as
+  a separate step, or the reader never returns and the capture file stays
+  empty — which reads exactly like a failed drop.
+
 ## Dragging across workspaces
 
 `$mod+<N>` **does** switch workspace with the mouse button held — the compositor handles its own binds before forwarding to the client. What is *not* established is whether the drag survives the switch, so do not build a workflow on it.
@@ -142,3 +201,5 @@ semantics by hand (plain = collapse-to-one, Ctrl = toggle, Shift = range;
 - **A window that is both drag source and drop target can reopen itself on its own drag-out** — guard with an own-drag-in-flight flag.
 - **Never rebuild a list mid-drag** — it orphans the `DragSource` and leaves a ghost that Escape cannot clear.
 - **Collapsing the drag-origin window must MOVE it, never hide or resize it** — a `WidgetPaintable` drag icon stays bound to the live (and now unmapped) widget.
+- **A source CAN read its drop target before writing the payload** (`focused_window()` resolves correctly inside the mime-write handler) — but overriding `do_write_mime_type_async` from PyGObject leaks on every drag; the idea is sound, the binding is what stops you.
+- **`ydotool mousemove -a` (absolute) is not exact** — pointer acceleration applies to it too; pin the origin with a large relative move first, then step relatively, and verify the landing from the source's own log rather than assuming it.
