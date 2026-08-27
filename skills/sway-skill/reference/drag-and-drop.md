@@ -86,6 +86,60 @@ contents as text/uri-list"* and never calls `do_get_value`.
 in C. From PyGObject, stay with the write-generic-then-correct approach
 documented above.
 
+## Erasing what a drop already inserted: count the minimum, never your model
+
+The write-generic-then-fix approach means the source, at some point, has to
+erase what the terminal inserted before writing the real value. The obvious
+implementation sends one backspace per character the source *believes* it put
+there. That belief is a model of the receiver, and the receiver is a chain —
+terminal, then possibly mosh, then tmux, then whatever TUI is running — each
+layer free to transform the text on the way in.
+
+**What it costs when the model is wrong.** A count of `len(path) + 2` assumed
+foot shell-quotes what it inserts on a drop. Over a live mosh session it does
+not: the path arrives raw, no quotes at all — quoting happens on a *local*
+drop and does not survive the trip through mosh. Two backspaces too many per
+file overshot the end of the user's line and reached a `[Pasted text #1 +443
+lines]` block sitting above it — one pasted block is one token to that TUI, so
+it vanished in a single keystroke, taking 443 lines of the user's own writing
+with it.
+
+**The measurement that settles it, two gestures, no guessing:**
+
+```sh
+ssh host 'tmux capture-pane -p -t <session>'   # before
+#   -> user drops ONE file, nothing else
+ssh host 'tmux capture-pane -p -t <session>'
+#   -> user presses ONE backspace
+ssh host 'tmux capture-pane -p -t <session>'
+```
+
+Diffing the three answers both questions at once, in exact bytes rather than
+guesses: what the receiver actually inserted, and whether one backspace
+removes one character or a whole token. `tmux capture-pane -p` over ssh beats
+a screenshot here — a screenshot cannot tell you whether the string is quoted.
+When the receiver is your own live session rather than a remote one, your own
+hand is the better instrument: two keystrokes from a human beat a synthetic
+drag, which in a tiling layout can land wherever the windows have rearranged
+to.
+
+**The rule:** count the minimum the receiver can possibly have inserted —
+
+```python
+typed = sum(len(p) for p in paths) + max(0, len(paths) - 1)
+```
+
+the paths plus one separator between them, not a byte more. If some receiver
+quotes on top of that, a couple of stray quote characters survive on the line.
+Visible litter beats a deletion that reaches text nobody asked it to touch:
+undershooting is cosmetic, overshooting is unrecoverable and the user cannot
+undo it.
+
+**And send every keystroke as ONE ordered process**, e.g. one
+`ydotool key -d 4 14:1 14:0 ...` call carrying the full argument list — never
+one process per keystroke. 66 concurrent single-keystroke invocations once
+raced and only 45 landed, truncating the path mid-string.
+
 ## Testing synthetic drags without wrecking a live session
 
 - **`ydotool mousemove -a` does not land where you ask** — absolute mode goes
@@ -203,3 +257,5 @@ semantics by hand (plain = collapse-to-one, Ctrl = toggle, Shift = range;
 - **Collapsing the drag-origin window must MOVE it, never hide or resize it** — a `WidgetPaintable` drag icon stays bound to the live (and now unmapped) widget.
 - **A source CAN read its drop target before writing the payload** (`focused_window()` resolves correctly inside the mime-write handler) — but overriding `do_write_mime_type_async` from PyGObject leaks on every drag; the idea is sound, the binding is what stops you.
 - **`ydotool mousemove -a` (absolute) is not exact** — pointer acceleration applies to it too; pin the origin with a large relative move first, then step relatively, and verify the landing from the source's own log rather than assuming it.
+- **When erasing what a drop already inserted, count the minimum the receiver can possibly have — never a model of it.** Quoting is not consistent across a terminal→mosh→tmux chain, and one backspace too many can delete a whole pasted block instead of one character. Measure with `tmux capture-pane`, not a guess.
+- **Send corrective keystrokes as ONE ordered process**, never one process per keystroke — concurrent single-keystroke calls can race and drop characters.
