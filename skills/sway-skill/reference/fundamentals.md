@@ -495,6 +495,58 @@ sticky toggle
 for_window [title="^Picture-in-Picture$"] floating enable, sticky enable
 ```
 
+#### A sticky floating window breaks any "is this workspace single-window?" test
+
+Any feature gated on a workspace's window count (snap-to-half, auto-layout,
+"hide the bar when only one window," an autotiling heuristic) has to decide
+what counts. Counting *leaf windows* — tiled plus floating — looks like the
+conservative choice, and it is the one that breaks: `sticky` makes a window
+show on every workspace, and sway re-attaches it to whichever workspace is
+currently focused. It is therefore present in the focused workspace's
+`floating_nodes` at all times. One sticky window (a shelf, a HUD, a pinned
+notepad, a picture-in-picture) is enough to make
+`count(leaf windows) == 1` false on every workspace, forever — the feature
+never fires, with no error and no log line, because the code silently takes
+the fall-through branch that runs the original command. The symptom reads as
+"my new keybinding does nothing," indistinguishable from a binding that was
+never installed.
+
+**The fix: count tiled leaves only, and never let the recursion enter
+`.floating_nodes`:**
+
+```sh
+jq '[ $ws | recurse(.nodes[]?)
+    | select(.type? == "con")
+    | select((.nodes|length) == 0 and (.floating_nodes|length) == 0) ] | length'
+```
+
+`recurse(.nodes[]?)` from a workspace node never descends into
+`.floating_nodes`, so a floating container's own children are excluded too.
+Justification, not just convenience: an outer gap and the tiling layout do not
+act on a floating window, so it neither occupies the space being freed nor has
+any say in whether the operation makes sense — a workspace holding only
+floating windows should count as zero and fall through.
+
+**Method note: a nested headless sway cannot surface this.** The nested
+instance is a bare sway — no shelf, no HUD, no tray app, none of a real
+session's always-on furniture — so a feature that passes every test there can
+still do nothing in the real session. When a nested harness says PASS and the
+real session says nothing happened, the first suspect is a window that exists
+only in the real session: dump the focused workspace's `nodes` AND
+`floating_nodes` with `app_id` and `sticky` before touching anything else:
+
+```sh
+swaymsg -t get_tree | jq -r '.. | objects | select(.type?=="workspace")
+  | select([recurse(.nodes[]?,.floating_nodes[]?)|.focused?==true]|any)
+  | {ws:.name,
+     tiled:[recurse(.nodes[]?)|select(.type=="con" and (.nodes|length)==0)|.app_id],
+     floating:[recurse(.floating_nodes[]?,.nodes[]?)|select(.type=="floating_con")|{app_id,sticky}]}'
+```
+
+Running the script itself under `sh -x` in the live session is what actually
+names the culprit fastest — a `COUNT=2` in the trace where a separate count
+called the same workspace 1 points straight at what's being missed.
+
 ### opacity
 
 ```sway
