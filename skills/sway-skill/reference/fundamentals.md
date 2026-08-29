@@ -393,6 +393,61 @@ workspace 1 gaps inner 0
 workspace 1 gaps outer 0
 ```
 
+#### Half-screen snap for a workspace's ONLY window, without floating it
+
+A lone tiled window always fills its workspace — `resize set width 50ppt` does
+nothing because there is no sibling to give the space to, and the sway layout
+model has no empty containers to reserve room in. Floating it (`floating
+enable` + `resize set` + `move position`) works but is the wrong tool whenever
+anything else on the machine also places or remembers floating geometry — two
+writers fighting over one window.
+
+The tiled way is to grow an **outer gap of the workspace** on the side meant
+to stay empty. The full runtime form:
+
+```sway
+gaps inner|outer|horizontal|vertical|top|right|bottom|left  all|current
+     set|plus|minus <amount>
+```
+
+```sway
+gaps right  current plus 930    # window keeps the LEFT half
+gaps left   current plus 930    # right half
+gaps bottom current plus 510    # top half
+gaps top    current plus 510    # bottom half
+```
+
+Measured on a 1920x1080 output with `gaps inner 25px` / `gaps outer 5px`
+(usable workspace 1860x1020): baseline rect `1860x1020+30+30`,
+`gaps right current plus 930` → `930x1020+30+30`. The container stays
+`type: "con"` — tiled — so it keeps SwayFX corner_radius/dim_inactive/
+animations, and there is no floating state to undo afterward.
+
+Four traps, all measured:
+
+1. **`gaps ... current` only ever addresses the FOCUSED workspace.** There is
+   no IPC form that targets another one — `workspace <ws> gaps ...` is
+   config-time only. Anything that has to correct a non-focused workspace has
+   to wait for a `workspace::focus` event and fix it as it becomes visible.
+2. **Real fullscreen ignores gaps entirely.** A container in `fullscreen
+   enable` renders at the full output rect no matter what the outer gaps say.
+   Leave fullscreen before snapping; the gap survives the round trip
+   (disabling fullscreen returns to the snapped rect).
+3. **A gap belongs to the WORKSPACE, not the window.** Opening a second window
+   while snapped splits *inside* the half. If the feature promises
+   "multi-window behaviour is untouched," something has to release the gap on
+   `window::new` / `close` / `move` / `floating`.
+4. **Undo by recomputing, never by replaying a stored delta.** `sway reload`
+   resets gaps to the config defaults; a stored "subtract 930" replayed after
+   that drives the outer gap negative and the workspace ends up WIDER than the
+   output. Store the pre-snap size instead and subtract
+   `stored_full - current_size`, which is naturally 0 once the gap is already
+   gone.
+
+`{"success": true}` from a `gaps` command only means it parsed. To confirm the
+snap actually happened, read the rect back from `get_tree` and compare it to
+the expected `w x h + x + y`.
+
 ### Hide edge borders
 
 ```sway
