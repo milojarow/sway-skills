@@ -39,6 +39,7 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 | **Synthetic input** — wtype vs ydotool, the wtype→slurp SIGSEGV and its repair, unicode typing traps | [reference/synthetic-input.md](reference/synthetic-input.md) |
 | **Start/stop toggle scripts** — where a "recording just finished" hook belongs (the starting instance, never the stop branch), guarding with `-s`, and testing a `slurp`-driven toggle by stubbing `slurp` on `PATH` | [reference/toggle-script-hooks.md](reference/toggle-script-hooks.md) |
 | **Self-placing windows** — why no `window` event fires for a floating move/resize in place (poll `get_tree` instead), `resize set` being center-anchored, the constant gap/border offset on `move position`, why a self-correcting move must verify instead of trusting one correction, and excluding a self-placer from every other placement daemon | [reference/self-placing-windows.md](reference/self-placing-windows.md) |
+| **Stuck pointer button** — a click that stays "held" (rubber-band on just moving the mouse): probing the REAL kernel button state passively with `EVIOCGKEY` (no `get_cursor` in IPC, and injecting a test click moves the operator's real pointer), telling kernel/seat-stuck from client-state-stuck apart | [reference/stuck-pointer-button.md](reference/stuck-pointer-button.md) |
 | Lock & idle — swaylock (appearance), swayidle | [reference/lock-and-idle.md](reference/lock-and-idle.md) |
 | Image viewer — swayimg (viewer + gallery) | [reference/images.md](reference/images.md) |
 | Window switcher — swayr (MRU) | [reference/swayr.md](reference/swayr.md) |
@@ -60,5 +61,6 @@ When in doubt, the installed man pages are authoritative: `man 5 sway` (config +
 - **"Is the config valid? `sway --validate` came back clean."** → config.md — it returns exit 0 and empty output on unclosed blocks, missing `include` targets and nonexistent commands. A green `--validate` is not evidence; only a real (nested headless) load is.
 - **"`Print` / a screenshot binding stopped working, no error"?** → synthetic-input.md — a recent `wtype` call likely SIGSEGV'd the next `slurp`; check exit status (139), not coredump counts, and repair with one `ydotool key` event.
 - **"A self-placing widget/panel vanished after launch"?** → self-placing-windows.md — likely parked past the output edge by the constant gap/border offset on `move position`, doubled down by another placement daemon racing the same window.
+- **"A click feels stuck down / rubber-band starts from just moving the mouse"?** → stuck-pointer-button.md — probe `EVIOCGKEY` passively instead of injecting a test click; tells kernel/seat-stuck from client-stuck apart.
 
 This machine's custom features each have a man page (`~/.local/share/man/man1/`) — this-system.md is the index; `man <name>` is the full doc.
