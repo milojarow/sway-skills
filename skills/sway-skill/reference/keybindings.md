@@ -172,6 +172,36 @@ query. To actually verify it, subscribe to the `binding` event
 (`swaymsg -t subscribe -m '["binding"]'`) and press the key — the event
 reports the command that ran (see [ipc.md](ipc.md#event-binding)).
 
+## A keybinding script that overloads a HOT key has a latency budget
+
+When a script takes over a key that already does something frequent (a focus
+key, workspace switching), the script's cost is paid on **every** ordinary
+press, not just the special case it was added for. Measured on a live
+session, doing the same work — one `swaymsg -t get_tree` of roughly 42 KB plus
+a parse:
+
+| implementation | wall time |
+|---|---|
+| `sh` + `jq` | ~8 ms (~12 ms with a `flock` and a `mkdir -p`) |
+| `python3` (`import json` + `subprocess`) | ~46–50 ms |
+
+The gap is interpreter startup, not the IPC round trip — a bare
+`swaymsg -t get_version` is ~2 ms on its own. ~50 ms in front of a focus key
+is felt as input lag; ~12 ms is not.
+
+Rule of thumb: a keybinding script that **falls through** to the native
+command in the common case has to be `sh` + `jq`. Python is fine for the
+long-lived daemon half of the same feature (its startup cost is paid once)
+and for keys pressed deliberately, like a launcher.
+
+Corollary for the fall-through itself: verify it is byte-identical to the
+native command by A/B — run `swaymsg focus <dir>` and the script from the
+*same* starting state and compare the resulting focused container. This also
+catches the case where the test's expectation is wrong, not the script: with
+sway's default `focus_wrapping yes`, `focus left` from the leftmost window
+wraps to the rightmost, which reads like a bug in the script if you don't
+already know sway does that natively.
+
 ---
 
 ## Binding Modes
