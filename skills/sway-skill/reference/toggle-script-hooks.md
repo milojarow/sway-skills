@@ -116,6 +116,53 @@ came up.
 is exactly the line that proves this failure mode, and it's the one branch
 most likely to be swallowed with `>/dev/null 2>&1`.
 
+## Killing a shell daemon by its script PID orphans the pipeline
+
+A daemon whose body is a pipeline —
+
+```sh
+swaymsg -t subscribe -m '["window","workspace"]' \
+  | jq --unbuffered -r 'select(...) | .change' \
+  | while read -r change; do ...; done
+```
+
+— started as `./daemon.sh &` and stopped with `kill $!` only kills the `sh`.
+The three pipeline members are reparented to PID 1 and keep running — still
+subscribed, still acting.
+
+This matters beyond leaked processes: run a test twice and the second run has
+TWO live daemons racing the same state. That has produced a phantom FAIL in a
+suite where the code under test was correct — two concurrent undos each
+subtracted the full delta and left a workspace 30px wider than the screen. The
+bug was in the harness, and the symptom pointed straight at the feature.
+
+Detection:
+
+```sh
+ps -eo pid,ppid,args | grep -E 'daemon\.sh|swaymsg -t subscribe'
+```
+
+`PPID 1` on something you just killed is the tell.
+
+Two fixes, both worth having:
+
+- **Stop it the way it is supervised.** `systemctl --user stop <unit>` kills
+  the whole cgroup. In a test harness with no service manager,
+  `setsid ./daemon.sh &` then `kill -- -$PID` (a negative PID targets the
+  whole process group).
+- **Make concurrent runs safe anyway**, because the keypress path and the
+  daemon path of the same feature can genuinely overlap in normal use, not
+  just in a test. A `flock` on a shared lock file, taken *before* the state is
+  read, serializes the read-modify-write:
+
+  ```sh
+  exec 9>"$STATE_DIR/.lock"
+  flock -w 2 9 || exit 0
+  ```
+
+  Taking the lock before `get_tree` — not just before the write — also stops
+  the geometry a run acts on from going stale underneath it.
+
 ## Match windows by a stable `app_id` suffix, not the literal string
 
 `--app` windows built from a URL + profile can have their `app_id`
