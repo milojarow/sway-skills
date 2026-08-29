@@ -145,6 +145,35 @@ bindsym $mod+Shift+1 move container to workspace number $ws1
 
 ---
 
+## Install a keybinding over IPC instead of `swaymsg reload`
+
+`swaymsg reload` re-emits outputs, and a bar recreating its layer-shell
+surface on that can time out ("Timed out waiting for initial .configure") and
+end up alive but invisible — which `Restart=always` will not recover, because
+nothing actually died.
+
+`bindsym` is itself a runtime command, so installing or changing a single
+binding does not need a reload at all:
+
+```bash
+swaymsg 'bindsym --to-code Mod4+h exec /path/to/script left'
+```
+
+Config variables (`$mod`, `$left_alt`, `$script_path`, …) do **not** exist
+over IPC — expand them yourself before sending (`$mod` → `Mod4`, and the
+script's full path). Keep the equivalent `bindsym` lines in the config file
+for the next sway start; the hot install over IPC is only there to avoid a
+reload right now. Same shape as `for_window` rules: apply hot, persist in the
+config, and reserve a full `reload` for changes that genuinely need one.
+
+Caveat worth stating out loud: a `{"success": true}` reply from `bindsym`
+proves the command parsed, not that it fires. There is no `get_bindings` IPC
+query. To actually verify it, subscribe to the `binding` event
+(`swaymsg -t subscribe -m '["binding"]'`) and press the key — the event
+reports the command that ran (see [ipc.md](ipc.md#event-binding)).
+
+---
+
 ## Binding Modes
 
 Modes allow a second (or Nth) layer of keybindings activated by a trigger. All keys not defined in the active mode are ignored. See **this document** for the full reference.
