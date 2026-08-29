@@ -73,3 +73,60 @@ the hook did.
   match the shell running the check itself. Read the compositor's window
   list, or match on the process name, rather than trusting a `-f` pattern
   about your own tooling.
+
+## A three-state toggle (launch / show / hide) needs a lock around the launch
+
+A different shape: a bar button (`on-click`) drives a script with three
+branches — no instance → **launch** it · hidden → **show** · visible →
+**hide**. The script launches the app in the background and returns
+immediately.
+
+Between the launch and the window actually mapping, a Chromium/Electron-class
+app takes 0.8–2.5 s cold. The user sees nothing happen, clicks again, and the
+second click lands inside that window. Two silent outcomes, both wrong:
+
+- if the window has settled by then, the toggle finds it and **hides** it —
+  it flashes on then off in one blink;
+- if it hasn't, the toggle **launches again** — and a launcher with the usual
+  "instance alive but 0 windows → restart it" guard **kills the instance that
+  was still starting** and opens a fresh one instead.
+
+This reads as "it redraws from scratch on every click", which sounds like a
+compositor/rendering bug and isn't. To confirm without adding instrumentation,
+if the toggle already logs its branch: check how many LAUNCH branches were
+immediately followed by a HIDE — if most of them were, seconds apart, that's
+the user's impatient second click, not a timer.
+
+**Fix — `flock -n` on a per-instance lockfile, taken on entry, with the
+launch itself running in the FOREGROUND while the lock is held:**
+
+```sh
+LOCK="${XDG_RUNTIME_DIR:-/tmp}/mi-toggle-$acct.lock"
+exec 9>"$LOCK"
+flock -n 9 || { log "clic ignorado — lanzamiento en curso"; exit 0; }
+```
+
+The lock is held for a normal show/hide barely long enough to matter, and for
+however long the launch takes when there's nothing running yet. Extra clicks
+during a launch are dropped instead of hiding or reaping the window that just
+came up.
+
+**Send the launcher's own stdout/stderr into the toggle's log, not
+`/dev/null`.** The silent "instance alive, 0 windows — restarting it" branch
+is exactly the line that proves this failure mode, and it's the one branch
+most likely to be swallowed with `>/dev/null 2>&1`.
+
+## Match windows by a stable `app_id` suffix, not the literal string
+
+`--app` windows built from a URL + profile can have their `app_id`
+**rewritten** by the browser when the site starts behaving like a PWA. Any
+script that targets those windows (by criteria or `swaymsg`) should match on
+the stable part (e.g. a trailing pattern) rather than the exact literal.
+
+The failure is asymmetric: the toggle itself fails loudly (it just launches
+again, which is noticeable). What fails silently is a **closer/cleanup**
+script that falls through to a generic branch, skips whatever teardown it was
+supposed to run, and leaves the browser process alive with 0 windows eating
+memory. When applying this fix, sweep every script in the set in the same
+change — a toggle/launcher/closer trio fixed in two of three still leaves the
+hole open.
